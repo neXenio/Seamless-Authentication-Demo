@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">Seamless Authentication Integration Sample</string>
+
+    <string name="title_authenticator_list">Authenticators</string>
+    <string name="title_authenticator_detail">Authenticator Detail</string>
+
+    <string name="unknown">unknown</string>
+
+    <string name="error_unknown">Unknown error</string>
+    <string name="error_missing_permissions">Required permissions missing</string>
+    <string name="error_bluetooth_disabled">Bluetooth disabled</string>
+    <string name="error_location_services_disabled">Location services disabled</string>
+
+    <string name="status_unknown">@string/unknown</string>
+    <string name="status_detection_started">Detection started</string>
+    <string name="status_detection_stopped">Detection stopped</string>
+
+    <string name="action_retry">Retry</string>
+    <string name="action_enable">Enable</string>
+    <string name="action_grant_permission">Grant</string>
+    <string name="action_authenticate">Authenticate</string>
+    <string name="action_authenticate_now">Authenticate Now</string>
+
+    <string name="authenticator_name_unknown">Unknown Authenticator</string>
+    <string name="authenticator_id_unknown">Unknown UUID</string>
+
+    <string name="authenticator_state_active">active</string>
+    <string name="authenticator_state_inactive">inactive</string>
+
+    <string name="gateway_direction_entry">entry</string>
+    <string name="gateway_direction_exit">exit</string>
+
+    <string name="authenticator_generic_description">Authenticator, about %.1f meters away and currently %s.</string>
+    <string name="authenticator_door_description">Access control door, about %.1f meters away and currently %s. The closest opening is the %s.</string>
+    <string name="authenticator_gate_description">Access control gate, about %.1f meters away and currently %s. It has %d gateways, the closest one is the %s with index %d.</string>
+
+    <string name="caption_authentication">Authentication</string>
+    <string name="description_authentication">You can enable seamless authentication for this device. If enabled, you will be automatically authenticated when you are in range.</string>
+    <string name="label_seamless_authentication">Seamless authentication</string>
+    <string name="label_authentication_range">Authentication range</string>
+
+    <string-array name="authentication_ranges">
+        <item>50 cm</item>
+        <item>1 m</item>
+        <item>2 m</item>
+        <item>5 m</item>
+        <item>10 m</item>
+    </string-array>
+
+</resources>
