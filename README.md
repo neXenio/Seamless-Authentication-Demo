@@ -10,10 +10,10 @@ The library will be served through neXenio's public artifacory, reachable at `ht
 ```gradle
 repositories {
     maven {
-        url "https://artifactory.nexenio.com/artifactory/${artifactory_repository}/"
+        url "https://artifactory.nexenio.com/artifactory/${nexenio_artifactory_repository}/"
         credentials { 
-            username "${artifactory_user}" 
-            password "${artifactory_password}"
+            username "${nexenio_artifactory_user}" 
+            password "${nexenio_artifactory_password}"
         }
     }
     maven {
@@ -22,8 +22,17 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.nexenio.seamlessauthentication:core:0.1.0'
+    implementation 'com.nexenio.seamlessauthentication:core:0.2.1'
 }
+```
+
+You should extend your gobal `build.gradle` file with the following properties:
+
+```gradle
+# neXenio Artifactory
+nexenio_artifactory_repository=PLACEHOLDER
+nexenio_artifactory_user=PLACEHOLDER
+nexenio_artifactory_password=PLACEHOLDER
 ```
 
 ## Getting Started
