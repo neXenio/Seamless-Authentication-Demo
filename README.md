@@ -3,6 +3,8 @@ Seamless Authentication Demo
 
 This repo contains a dummy app integrating the seamless authentication library.
 
+![Header Image](https://raw.githubusercontent.com/neXenio/Seamless-Authentication-Demo/master/media/header.jpg)
+
 ## Resolving Dependencies
 
 The library will be served through neXenio's public artifacory, reachable at `https://artifactory.nexenio.com`. It has dependencies on other libraries, some of which are served through JitPack.
