@@ -132,6 +132,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
 
     @CallSuper
     protected void indicateDetectionStarted() {
+        Timber.d("indicateDetectionStarted() called");
         progressBarFrameLayout.setVisibility(View.VISIBLE);
         fab.setOnClickListener(view -> stopSeamlessAuthenticatorDetection());
         fab.setImageResource(R.drawable.ic_pause_black_24dp);
@@ -144,12 +145,13 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
 
     @CallSuper
     protected void indicateDetectionStopped() {
+        Timber.d("indicateDetectionStopped() called");
         progressBarFrameLayout.setVisibility(View.GONE);
         fab.setOnClickListener(view -> startSeamlessAuthenticatorDetection());
         fab.setImageResource(R.drawable.ic_autorenew_black_24dp);
 
         statusSnackbar.dismiss();
-        if (!errorSnackbar.isShown()) {
+        if (errorSnackbar.getView().getVisibility() != View.VISIBLE) {
             statusSnackbar = Snackbar.make(coordinatorLayout, R.string.status_detection_stopped, Snackbar.LENGTH_LONG);
             statusSnackbar.show();
         }
@@ -168,6 +170,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
      */
 
     private void checkPermissions() {
+        Timber.d("checkPermissions() called");
         int bluetoothPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
         int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
         if (bluetoothPermission != PackageManager.PERMISSION_GRANTED || locationPermission != PackageManager.PERMISSION_GRANTED) {
@@ -176,6 +179,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     }
 
     private void showMissingPermissionError() {
+        Timber.d("showMissingPermissionError() called");
         errorSnackbar.dismiss();
         errorSnackbar = Snackbar.make(coordinatorLayout, R.string.error_missing_permissions, Snackbar.LENGTH_INDEFINITE);
         errorSnackbar.setAction(R.string.action_grant_permission, v -> requestMissingPermissions());
@@ -184,6 +188,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
 
     @SuppressLint("CheckResult")
     private void requestMissingPermissions() {
+        Timber.d("requestMissingPermissions() called");
         rxPermissions.request(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .subscribe(permissionsGranted -> {
                     if (permissionsGranted) {
@@ -200,6 +205,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
      */
 
     private void checkBluetoothEnabled() {
+        Timber.d("checkBluetoothEnabled() called");
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
             showBluetoothDisabledError();
@@ -207,6 +213,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     }
 
     private void showBluetoothDisabledError() {
+        Timber.d("showBluetoothDisabledError() called");
         errorSnackbar.dismiss();
         errorSnackbar = Snackbar.make(coordinatorLayout, R.string.error_bluetooth_disabled, Snackbar.LENGTH_INDEFINITE);
         errorSnackbar.setAction(R.string.action_enable, v -> enableBluetooth());
@@ -214,6 +221,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     }
 
     private void enableBluetooth() {
+        Timber.d("enableBluetooth() called");
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
     }
@@ -223,6 +231,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
      */
 
     private void checkLocationServicesEnabled() {
+        Timber.d("checkLocationServicesEnabled() called");
         boolean enabled;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -238,6 +247,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     }
 
     private void showLocationServicesDisabledError() {
+        Timber.d("showLocationServicesDisabledError() called");
         errorSnackbar.dismiss();
         errorSnackbar = Snackbar.make(coordinatorLayout, R.string.error_location_services_disabled, Snackbar.LENGTH_INDEFINITE);
         errorSnackbar.setAction(R.string.action_enable, v -> enableLocationServices());
@@ -245,6 +255,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     }
 
     private void enableLocationServices() {
+        Timber.d("enableLocationServices() called");
         Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivityForResult(intent, REQUEST_ENABLE_LOCATION_SERVICES);
     }

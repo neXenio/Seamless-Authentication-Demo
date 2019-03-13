@@ -25,12 +25,13 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.nexenio.seamlessauthentication:core:0.2.1'
+    implementation 'com.nexenio.seamlessauthentication:core:0.2.7'
 
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
 
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha02'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.constraintlayou' +
+            't:constraintlayout:1.1.3'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0-alpha02'
