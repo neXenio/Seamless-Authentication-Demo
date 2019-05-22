@@ -243,7 +243,6 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         if (!enabled) {
             showLocationServicesDisabledError();
         }
-
     }
 
     private void showLocationServicesDisabledError() {
