@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
+import com.nexenio.seamlessauthentication.distance.DistanceProvider;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +51,7 @@ public class AuthenticatorDetailFragment extends Fragment {
 
     private SeamlessAuthenticator authenticator;
     private Disposable authenticationDisposable;
+    private Disposable anticipateAuthenticationDisposable;
 
     private boolean seamlessAuthenticationEnabled = false;
     private double rangeThreshold = 0.5;
@@ -118,7 +120,7 @@ public class AuthenticatorDetailFragment extends Fragment {
         rangeSpinner = rootView.findViewById(R.id.rangeSpinner);
         authenticateButton = rootView.findViewById(R.id.authenticateButton);
 
-        authenticateButton.setOnClickListener(v -> authenticate());
+        authenticateButton.setOnClickListener(v -> authenticate(authenticator));
 
         seamlessAuthenticationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             seamlessAuthenticationEnabled = isChecked;
@@ -167,16 +169,26 @@ public class AuthenticatorDetailFragment extends Fragment {
         super.onDetach();
     }
 
-    private void authenticate() {
-        Timber.d("authenticate() called");
-        if (authenticator == null) {
+    private void anticipateAuthentication(@NonNull SeamlessAuthenticator authenticator) {
+        Timber.d("anticipateAuthentication() called");
+        if (anticipateAuthenticationDisposable != null && !anticipateAuthenticationDisposable.isDisposed()) {
             return;
         }
+        anticipateAuthenticationDisposable = authenticator.anticipateAuthentication(authenticationProperties)
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        () -> Timber.i("Authentication anticipation succeeded"),
+                        throwable -> Timber.w(throwable, "Authentication anticipation failed")
+                );
+    }
+
+    private void authenticate(@NonNull SeamlessAuthenticator authenticator) {
+        Timber.d("authenticate() called");
         if (authenticationDisposable != null && !authenticationDisposable.isDisposed()) {
             return;
         }
         authenticationDisposable = authenticator.authenticate(authenticationProperties)
-                .subscribeOn(Schedulers.computation())
+                .subscribeOn(Schedulers.io())
                 .subscribe(
                         () -> Timber.i("Authentication succeeded"),
                         throwable -> Timber.w(throwable, "Authentication failed")
@@ -192,9 +204,12 @@ public class AuthenticatorDetailFragment extends Fragment {
                                 .onErrorReturnItem(false)
                                 .blockingGet())
                         .firstElement())
-                .subscribeOn(Schedulers.computation())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::showAuthenticator);
+                .subscribe(
+                        this::showAuthenticator,
+                        throwable -> Timber.w(throwable, "Unable to update authenticator")
+                );
     }
 
     private void stopUpdatingAuthenticator() {
@@ -205,12 +220,18 @@ public class AuthenticatorDetailFragment extends Fragment {
     }
 
     private void showAuthenticator(@NonNull SeamlessAuthenticator authenticator) {
-        Timber.d("Seamless authenticator detected: %s", authenticator);
+        if (this.authenticator != authenticator) {
+            Timber.d("Authenticator updated: %s", authenticator);
+            this.authenticator = authenticator;
+            anticipateAuthentication(authenticator);
+        }
 
-        this.authenticator = authenticator;
+        double distance = authenticator.getDistanceProvider()
+                .flatMap(DistanceProvider::getDistance)
+                .blockingGet();
 
-        if (seamlessAuthenticationEnabled && authenticator.getDistance().blockingGet() <= rangeThreshold) {
-            authenticate();
+        if (seamlessAuthenticationEnabled && distance <= rangeThreshold) {
+            authenticate(authenticator);
         }
 
         String name = AuthenticatorViewHolder.getReadableName(authenticator, getContext()).blockingGet();

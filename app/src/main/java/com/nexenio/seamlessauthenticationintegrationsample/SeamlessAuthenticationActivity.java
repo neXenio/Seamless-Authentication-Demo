@@ -114,7 +114,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
                 .ignoreElements()
                 .doOnSubscribe(subscription -> runOnUiThread(this::indicateDetectionStarted))
                 .doFinally(() -> runOnUiThread(this::indicateDetectionStopped))
-                .subscribeOn(Schedulers.computation())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         () -> Timber.i("Seamless authenticator detection completed"),

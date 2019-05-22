@@ -86,7 +86,6 @@ public class AuthenticatorListActivity extends SeamlessAuthenticationActivity {
     }
 
     private void showAuthenticators(@NonNull List<SeamlessAuthenticator> authenticators) {
-        Timber.d("Seamless authenticators detected: %d", authenticators.size());
         authenticatorAdapter.setAuthenticators(authenticators);
         authenticatorAdapter.notifyDataSetChanged();
     }
