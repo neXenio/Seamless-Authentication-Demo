@@ -59,8 +59,7 @@ In order to actually detect nearby authenticators, subscribe to the `detect()` m
 
 ```java
 authenticatorDetector.detect()
-        .subscribeOn(Schedulers.computation())
-        .observeOn(AndroidSchedulers.mainThread())
+        .subscribeOn(Schedulers.io())
         .subscribe(
                 seamlessAuthenticator -> {
                     Timber.d("Seamless authenticator detected: %s", seamlessAuthenticator);
@@ -78,3 +77,26 @@ In order to get all currently detected authenticators (each instance only once),
 If you only care about the closest authenticator, use the `getClosestAuthenticator()` method.
 
 Keep in mind that you always need to have an active subscription to the `detect()` method for these methods to work.
+
+### Distance Estimation
+
+Each detected `SeamlessAuthenticator` instance has an `AuthenticatorDistanceProvider` that you can get by using `seamlessAuthenticator.getDistanceProvider()`. It can be used to get the current distance between the `SeamlessAuthenticator` and the `SeamlessAuthenticatorDetector` (`distanceProvider.getDistance()`) as well as to subscribe to distance updates (`distanceProvider.getDistances()`).
+
+You can overwrite the default provider with a custom implementation (e.g. if you have an indoor positioning system) using `seamlessAuthenticator.setDistanceProvider(distanceProvider)`.
+
+### Initiate an Authentication
+
+To initiate an authentication, you need to provide an `AuthenticationProperties` object. This object contains details about the current user and device.
+
+#### Anticipation
+
+Before actually initiating the authentication, you should use `seamlessAuthenticator.anticipateAuthentication(authenticationProperties)`. This will prepare the authentication as far as possible by already exchanging the data required for the authentication with the authenticator. Although this is not required, it will reduce the time needed for authenticating and thus improve the user experience.
+
+#### Authentication
+
+In order to authenticate, use `seamlessAuthenticator.authenticate(authenticationProperties)`. The returned `Completable` will complete when the authentication succeeded, or emit an error otherwise.
+
+
+
+
+
