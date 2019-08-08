@@ -11,13 +11,22 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
+import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
+import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
+import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
+import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
+import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayOpening;
 import com.nexenio.seamlessauthentication.distance.DistanceProvider;
+import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
+import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -65,6 +74,8 @@ public class AuthenticatorDetailFragment extends Fragment {
     private MaterialButton authenticateButton;
     private SwitchCompat seamlessAuthenticationSwitch;
     private AppCompatSpinner rangeSpinner;
+
+    private TextView beaconDescriptionTextView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
@@ -153,6 +164,8 @@ public class AuthenticatorDetailFragment extends Fragment {
 
             }
         });
+
+        beaconDescriptionTextView = rootView.findViewById(R.id.beaconDescriptionTextView);
 
         return rootView;
     }
@@ -245,6 +258,106 @@ public class AuthenticatorDetailFragment extends Fragment {
         nameTextView.setText(name);
         idTextView.setText(id);
         descriptionTextView.setText(description);
+
+        if (authenticator instanceof Gate) {
+            Gate gate = (Gate) authenticator;
+            List<GatewayDetectionBeacon> detectionBeacons = gate.getGateways()
+                    .flatMap(Gateway::getOpenings)
+                    .flatMap(GatewayOpening::getDetectionBeacons)
+                    .toList()
+                    .blockingGet();
+
+            StringBuilder beaconDescription = new StringBuilder();
+            for (GatewayDetectionBeacon detectionBeacon : detectionBeacons) {
+                beaconDescription.append(getReadableDescription(detectionBeacon, getContext()))
+                        .append("\n\n");
+            }
+            beaconDescriptionTextView.setText(beaconDescription.toString());
+        }
+
+    }
+
+    public static String getReadableDescription(@NonNull Beacon beacon, @NonNull Context context) {
+        StringBuilder description = new StringBuilder();
+
+        String type = getReadableBeaconType(beacon, context);
+        String mac = beacon.getMacAddress();
+        String tx = String.valueOf(beacon.getTransmissionPower());
+        String rssi = String.valueOf(Math.round(beacon.getFilteredRssi()));
+        String calibratedRssi = String.valueOf(beacon.getCalibratedRssi());
+        String distance = String.format(Locale.US, "%.2f", beacon.getDistance());
+        String interval = getReadableBeaconAdvertisingInterval(beacon, context);
+
+        description.append(context.getString(R.string.generic_beacon_description,
+                type, mac, tx, rssi, calibratedRssi, distance, interval));
+
+        if (beacon instanceof GatewayDetectionBeacon) {
+            GatewayDetectionBeacon gatewayDetectionBeacon = (GatewayDetectionBeacon) beacon;
+            String gate = String.valueOf(gatewayDetectionBeacon.getGateIndex());
+            String gateway = String.valueOf(gatewayDetectionBeacon.getGatewayIndex());
+            String direction = getReadableBeaconDirection(gatewayDetectionBeacon, context);
+            String position = getReadableBeaconPosition(gatewayDetectionBeacon, context);
+
+            description.append("\n").append(context.getString(R.string.gateway_detection_beacon_description,
+                    gate, gateway, direction, position));
+        }
+
+        return description.toString();
+    }
+
+    public static String getReadableBeaconAdvertisingInterval(@NonNull Beacon beacon, @NonNull Context context) {
+        try {
+            long oldestTimestamp = beacon.getOldestAdvertisingPacket().getTimestamp();
+            long latestTimestamp = beacon.getLatestAdvertisingPacket().getTimestamp();
+            double durationInSeconds = (double) (latestTimestamp - oldestTimestamp) / 1000;
+
+            double hertz = 0;
+            if (durationInSeconds != 0) {
+                int count = beacon.getAdvertisingPackets().size();
+                hertz = count / durationInSeconds;
+            }
+            return String.format(Locale.US, "%.2f", hertz);
+        } catch (Exception e) {
+            return context.getString(R.string.unknown);
+        }
+    }
+
+    public static String getReadableBeaconType(@NonNull Beacon beacon, @NonNull Context context) {
+        if (beacon instanceof GatewayDetectionBeacon) {
+            return context.getString(R.string.beacon_type_gateway_detection);
+        } else if (beacon instanceof GatewayDirectionLockBeacon) {
+            return context.getString(R.string.beacon_type_direction_lock);
+        } else {
+            return context.getString(R.string.beacon_type_unknown);
+        }
+    }
+
+    public static String getReadableBeaconPosition(@NonNull GatewayDetectionBeacon beacon, @NonNull Context context) {
+        switch (beacon.getPosition()) {
+            case GatewayDetectionBeacon.LEFT: {
+                return context.getString(R.string.beacon_position_left);
+            }
+            case GatewayDetectionBeacon.RIGHT: {
+                return context.getString(R.string.beacon_position_right);
+            }
+            default: {
+                return context.getString(R.string.unknown);
+            }
+        }
+    }
+
+    public static String getReadableBeaconDirection(@NonNull GatewayDetectionBeacon beacon, @NonNull Context context) {
+        switch (beacon.getGatewayDirection()) {
+            case GatewayDirection.ENTRY: {
+                return context.getString(R.string.beacon_direction_exit);
+            }
+            case GatewayDirection.EXIT: {
+                return context.getString(R.string.beacon_direction_entry);
+            }
+            default: {
+                return context.getString(R.string.unknown);
+            }
+        }
     }
 
 }

@@ -8,7 +8,6 @@
         tools:context=".AuthenticatorDetailFragment">
 
     <com.google.android.material.card.MaterialCardView
-            xmlns:android="http://schemas.android.com/apk/res/android"
             style="@style/AppTheme.CardView">
 
         <LinearLayout
@@ -34,7 +33,6 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-            xmlns:android="http://schemas.android.com/apk/res/android"
             style="@style/AppTheme.CardView">
 
         <LinearLayout
@@ -114,6 +112,29 @@
                         android:text="@string/action_authenticate_now"/>
 
             </RelativeLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+            style="@style/AppTheme.CardView">
+
+        <LinearLayout
+                style="@style/AppTheme.CardView.LinearLayout">
+
+            <TextView
+                    style="@style/AppTheme.CardView.TitleTextView"
+                    android:text="@string/caption_beacons"/>
+
+            <TextView
+                    style="@style/AppTheme.CardView.SubtitleTextView"
+                    android:text="@string/caption_beacons"/>
+
+            <TextView
+                    android:id="@+id/beaconDescriptionTextView"
+                    style="@style/AppTheme.CardView.ContentTextView"
+                    android:text="@string/description_beacons"/>
 
         </LinearLayout>
 

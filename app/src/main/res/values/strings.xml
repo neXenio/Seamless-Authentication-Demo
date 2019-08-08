@@ -35,9 +35,25 @@
     <string name="authenticator_gate_description">Access control gate, about %.1f meters away and currently %s. It has %d gateways, the closest one is the %s with index %d.</string>
 
     <string name="caption_authentication">Authentication</string>
-    <string name="description_authentication">You can enable seamless authentication for this device. If enabled, you will be automatically authenticated when you are in range.</string>
+    <string name="description_authentication">You can enable seamless authentication for this device. If enabled, you will be automatically authenticated when you are in range and while this view is open.</string>
     <string name="label_seamless_authentication">Seamless authentication</string>
     <string name="label_authentication_range">Authentication range</string>
+
+    <string name="caption_beacons">Beacons</string>
+    <string name="description_beacons">This device uses detection beacons. You can check their configuration below.</string>
+
+    <string name="beacon_type_unknown">Unknown Beacon</string>
+    <string name="beacon_type_gateway_detection">Gateway Detection Beacon</string>
+    <string name="beacon_type_direction_lock">Direction Lock Beacon</string>
+    <string name="beacon_type_wake_up">Wake-Up Beacon</string>
+
+    <string name="beacon_direction_entry">@string/gateway_direction_entry</string>
+    <string name="beacon_direction_exit">@string/gateway_direction_exit</string>
+    <string name="beacon_position_left">left</string>
+    <string name="beacon_position_right">right</string>
+
+    <string name="generic_beacon_description">Type: %1$s\nMAC: %2$s\nTX: %3$s dBm\nCalibrated RSSI: %5$s dBm\nRSSI: %4$s dBm\nDistance: %6$s meters\nInterval: %7$s Hz</string>
+    <string name="gateway_detection_beacon_description">Gate Index: %1$s\nGateway Index: %2$s\nDirection: %3$s\nPosition: %4$s</string>
 
     <string-array name="authentication_ranges">
         <item>50 cm</item>
