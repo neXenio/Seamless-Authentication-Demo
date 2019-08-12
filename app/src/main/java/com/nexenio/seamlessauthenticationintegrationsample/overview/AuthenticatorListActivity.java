@@ -1,8 +1,11 @@
-package com.nexenio.seamlessauthenticationintegrationsample;
+package com.nexenio.seamlessauthenticationintegrationsample.overview;
 
 import android.os.Bundle;
 
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
+import com.nexenio.seamlessauthenticationintegrationsample.R;
+import com.nexenio.seamlessauthenticationintegrationsample.SeamlessAuthenticationActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.detail.AuthenticatorDetailActivity;
 
 import java.util.Collections;
 import java.util.List;

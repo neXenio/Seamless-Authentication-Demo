@@ -1,4 +1,4 @@
-package com.nexenio.seamlessauthenticationintegrationsample;
+package com.nexenio.seamlessauthenticationintegrationsample.detail;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.button.MaterialButton;
@@ -22,6 +22,11 @@ import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayO
 import com.nexenio.seamlessauthentication.distance.DistanceProvider;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
+import com.nexenio.seamlessauthenticationintegrationsample.R;
+import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorViewHolder;
+import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +76,7 @@ public class AuthenticatorDetailFragment extends Fragment {
     private TextView nameTextView;
     private TextView idTextView;
     private TextView descriptionTextView;
+    private GateView gateView;
     private MaterialButton authenticateButton;
     private SwitchCompat seamlessAuthenticationSwitch;
     private AppCompatSpinner rangeSpinner;
@@ -127,6 +133,7 @@ public class AuthenticatorDetailFragment extends Fragment {
         idTextView = rootView.findViewById(R.id.idTextView);
         nameTextView = rootView.findViewById(R.id.nameTextView);
         descriptionTextView = rootView.findViewById(R.id.descriptionTextView);
+        gateView = rootView.findViewById(R.id.visualizationView);
         seamlessAuthenticationSwitch = rootView.findViewById(R.id.seamlessAuthenticationSwitch);
         rangeSpinner = rootView.findViewById(R.id.rangeSpinner);
         authenticateButton = rootView.findViewById(R.id.authenticateButton);
@@ -273,8 +280,9 @@ public class AuthenticatorDetailFragment extends Fragment {
                         .append("\n\n");
             }
             beaconDescriptionTextView.setText(beaconDescription.toString());
-        }
 
+            gateView.onAuthenticatorUpdated(gate);
+        }
     }
 
     public static String getReadableDescription(@NonNull Beacon beacon, @NonNull Context context) {

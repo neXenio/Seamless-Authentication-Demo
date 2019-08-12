@@ -10,7 +10,7 @@
               android:divider="?android:attr/dividerHorizontal"
               android:orientation="horizontal"
               android:showDividers="middle"
-              tools:context=".AuthenticatorListActivity">
+              tools:context=".overview.AuthenticatorListActivity">
 
     <!--
     This layout is a two-pane layout for the Authenticators
@@ -27,7 +27,7 @@
                                                android:layout_marginLeft="16dp"
                                                android:layout_marginRight="16dp"
                                                app:layoutManager="LinearLayoutManager"
-                                               tools:context="com.nexenio.seamlessauthenticationintegrationsample.AuthenticatorListActivity"
+                                               tools:context="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity"
                                                tools:listitem="@layout/authenticator_list_content"/>
 
     <FrameLayout
