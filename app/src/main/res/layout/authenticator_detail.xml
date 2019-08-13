@@ -30,6 +30,7 @@
 
             <com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView
                     android:id="@+id/visualizationView"
+                    android:padding="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
