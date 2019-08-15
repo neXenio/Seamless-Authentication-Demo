@@ -77,8 +77,10 @@ public class GateView extends View implements GateVisualization {
     private Paint beaconStrokePaint;
     private Paint beaconFillPaint;
 
-    private String entryText;
-    private String exitText;
+
+    private String gatewayText = "";
+    private String entryText = "";
+    private String exitText = "";
 
     private final Map<String, ValueAnimator> valueAnimatorMap = new HashMap<>();
     private final Map<String, Long> latestTimestampMap = new HashMap<>();
@@ -160,8 +162,9 @@ public class GateView extends View implements GateVisualization {
 
         beaconStrokePaint = new Paint(gatewaySeparatorStrokePaint);
 
-        entryText = getContext().getString(R.string.gateway_direction_entry).toUpperCase();
-        exitText = getContext().getString(R.string.gateway_direction_exit).toUpperCase();
+        gatewayText = getContext().getString(R.string.gateway_description);
+        entryText = getContext().getString(R.string.entry_description);
+        exitText = getContext().getString(R.string.exit_description);
     }
 
     @Override
@@ -236,7 +239,6 @@ public class GateView extends View implements GateVisualization {
             int openingSaveCount = canvas.save();
             boolean isEntry = opening.getDirection().blockingGet() == GatewayDirection.ENTRY;
             if (!isEntry) {
-                //canvas.scale(-1, 1, gatewayWidth / 2, gatewayHeight / 2);
                 canvas.translate(gatewayWidth / 2, 0);
             }
             drawGatewayOpening(canvas, opening);
@@ -244,6 +246,16 @@ public class GateView extends View implements GateVisualization {
         }
 
         canvas.restoreToCount(saveCount);
+
+        // gateway description
+        textPaint.setColor(gatewaySeparatorStrokePaint.getColor());
+        String gatewayDescription = gatewayText + " " + gateway.getIndex().blockingGet();
+        canvas.drawText(
+                gatewayDescription,
+                gatewaySeparatorWidth / 2,
+                ((gatewaySeparatorHeight / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                textPaint
+        );
 
         // barrier
         drawGatewayBarrier(canvas);
@@ -390,6 +402,14 @@ public class GateView extends View implements GateVisualization {
         canvas.drawRect(gatewayDetectionBeaconRect, beaconFillPaint);
         canvas.drawRect(gatewayDetectionBeaconRect, beaconStrokePaint);
 
+        textPaint.setColor(beaconStrokePaint.getColor());
+        canvas.drawText(
+                String.valueOf(beacon.getMinor()),
+                gatewayDetectionBeaconRect.right / 2,
+                ((gatewayDetectionBeaconRect.bottom / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                textPaint
+        );
+
         // draw advertising packets
         List<AdvertisingPacket> advertisingPackets = beacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
         for (AdvertisingPacket advertisingPacket : advertisingPackets) {
@@ -454,6 +474,14 @@ public class GateView extends View implements GateVisualization {
         beaconFillPaint.setAlpha(Math.round(255 * recencyScore));
         canvas.drawRect(directionLockBeaconRect, beaconFillPaint);
         canvas.drawRect(directionLockBeaconRect, beaconStrokePaint);
+
+        textPaint.setColor(beaconStrokePaint.getColor());
+        canvas.drawText(
+                String.valueOf(beacon.getMinor()),
+                directionLockBeaconRect.right / 2,
+                ((directionLockBeaconRect.bottom / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                textPaint
+        );
 
         canvas.restoreToCount(saveCount);
     }
