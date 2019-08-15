@@ -36,6 +36,7 @@ import timber.log.Timber;
 public class GateView extends View implements GateVisualization {
 
     private Gate gate;
+    private GatewayOpening closestGatewayOpening;
 
     private float pixelsPerDp;
 
@@ -76,7 +77,6 @@ public class GateView extends View implements GateVisualization {
 
     private Paint beaconStrokePaint;
     private Paint beaconFillPaint;
-
 
     private String gatewayText = "";
     private String entryText = "";
@@ -124,7 +124,7 @@ public class GateView extends View implements GateVisualization {
 
         backgroundColor = Color.WHITE;
         foregroundColor = Color.BLACK;
-        bluetoothColor = Color.parseColor("#1976D2");
+        bluetoothColor = Color.parseColor("#90caf9");
         errorColor = Color.parseColor("#7F0000");
 
         backgroundPaint = new Paint();
@@ -195,6 +195,10 @@ public class GateView extends View implements GateVisualization {
         if (gate == null) {
             return;
         }
+
+        closestGatewayOpening = gate.getClosestGateway()
+                .flatMap(Gateway::getClosestOpening)
+                .blockingGet();
 
         int saveCount = canvas.save();
 
@@ -336,6 +340,8 @@ public class GateView extends View implements GateVisualization {
         float offsetFactor = isEntry ? -1 : 1;
 
         canvas.translate(offsetFactor * 2 * gatewayOpeningMargin, 0);
+
+        gatewayOpeningFillPaint.setAlpha(gatewayOpening == closestGatewayOpening ? 192 : 64);
 
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningFillPaint);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningStrokePaint);
