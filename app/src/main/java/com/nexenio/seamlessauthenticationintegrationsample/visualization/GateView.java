@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import timber.log.Timber;
 
 public class GateView extends View implements GateVisualization {
 
@@ -42,6 +43,12 @@ public class GateView extends View implements GateVisualization {
     private GatewayOpening closestGatewayOpening;
 
     private float pixelsPerDp;
+
+    private float gateWidth;
+    private float gateHeight;
+
+    private float desiredGatewayWidth;
+    private float desiredGatewayHeight;
 
     private float gatewayWidth;
     private float gatewayHeight;
@@ -105,24 +112,12 @@ public class GateView extends View implements GateVisualization {
             pixelsPerDp = ViewUtil.convertDpToPixel(1, getContext());
         }
 
-        gatewayWidth = 250 * pixelsPerDp;
-        gatewayHeight = 150 * pixelsPerDp;
+        desiredGatewayWidth = 250 * pixelsPerDp;
+        desiredGatewayHeight = 150 * pixelsPerDp;
 
-        gatewaySeparatorWidth = gatewayWidth;
-        gatewaySeparatorHeight = 20 * pixelsPerDp;
         gatewaySeparatorRect = new RectF(0, 0, gatewaySeparatorWidth, gatewaySeparatorHeight);
-
-        gatewayOpeningMargin = 0.1f * (gatewayHeight - (2 * gatewaySeparatorHeight));
-        gatewayOpeningHeight = (gatewayHeight - (2 * gatewaySeparatorHeight)) - (2 * gatewayOpeningMargin);
-        gatewayOpeningWidth = gatewayWidth / 2;
         gatewayOpeningRect = new RectF(0, 0, gatewayOpeningWidth, gatewayOpeningHeight);
-
-        gatewayDetectionBeaconWidth = 2 * (gatewaySeparatorHeight / 3);
-        gatewayDetectionBeaconHeight = gatewayDetectionBeaconWidth;
         gatewayDetectionBeaconRect = new RectF(0, 0, gatewayDetectionBeaconWidth, gatewayDetectionBeaconHeight);
-
-        directionLockBeaconWidth = gatewayDetectionBeaconWidth;
-        directionLockBeaconHeight = gatewayDetectionBeaconHeight;
         directionLockBeaconRect = new RectF(0, 0, directionLockBeaconWidth, directionLockBeaconHeight);
 
         backgroundColor = Color.WHITE;
@@ -177,49 +172,83 @@ public class GateView extends View implements GateVisualization {
             gatewayCount = gate.getGateways().count().blockingGet();
         }
 
-        int gateWidth = Math.round(gatewayCount * gatewayWidth);
-        int minimumWidth = gateWidth + getPaddingLeft() + getPaddingRight();
-        int width = resolveSizeAndState(minimumWidth, widthMeasureSpec, 1);
+        gateWidth = gatewayCount * desiredGatewayWidth;
+        gateHeight = gatewayCount * desiredGatewayHeight;
 
-        int gateHeight = Math.round(gatewayCount * gatewayHeight);
-        int minimumHeight = gateHeight + getPaddingBottom() + getPaddingTop();
-        int height = resolveSizeAndState(minimumHeight, heightMeasureSpec, 1);
+        int horizontalPadding = Math.max(Math.round(2 * pixelsPerDp), getPaddingLeft() + getPaddingRight());
+        int verticalPadding = Math.max(Math.round(2 * pixelsPerDp), getPaddingBottom() + getPaddingTop());
 
-        setMeasuredDimension(width, height);
+        int minimumWidth = (int) gateWidth + horizontalPadding;
+        int minimumHeight = (int) gateHeight + verticalPadding;
+
+        int viewWidth = resolveSizeAndState(minimumWidth, widthMeasureSpec, 1);
+        int viewHeight = resolveSizeAndState(minimumHeight, heightMeasureSpec, 1);
+
+        gateWidth = viewWidth - horizontalPadding;
+        gateHeight = viewHeight - verticalPadding;
+
+        gatewayWidth = Math.min(0.8F * gateWidth, desiredGatewayWidth);
+        gatewayHeight = 1F * gateHeight / gatewayCount;
+
+        gatewaySeparatorWidth = gatewayWidth;
+        gatewaySeparatorHeight = 0.125F * gatewayHeight;
+        gatewaySeparatorRect.set(0, 0, gatewaySeparatorWidth, gatewaySeparatorHeight);
+
+        gatewayOpeningMargin = 0.1f * (gatewayHeight - (2 * gatewaySeparatorHeight));
+        gatewayOpeningHeight = (gatewayHeight - (2 * gatewaySeparatorHeight)) - (2 * gatewayOpeningMargin);
+        gatewayOpeningWidth = gatewayWidth / 2;
+        gatewayOpeningRect.set(0, 0, gatewayOpeningWidth, gatewayOpeningHeight);
+
+        gatewayDetectionBeaconWidth = 2 * (gatewaySeparatorHeight / 3);
+        gatewayDetectionBeaconHeight = gatewayDetectionBeaconWidth;
+        gatewayDetectionBeaconRect.set(0, 0, gatewayDetectionBeaconWidth, gatewayDetectionBeaconHeight);
+
+        textPaint.setTextSize(0.75F * gatewayDetectionBeaconHeight);
+
+        directionLockBeaconWidth = gatewayDetectionBeaconWidth;
+        directionLockBeaconHeight = gatewayDetectionBeaconHeight;
+        directionLockBeaconRect.set(0, 0, directionLockBeaconWidth, directionLockBeaconHeight);
+
+        setMeasuredDimension(viewWidth, viewHeight);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        try {
+            // fill canvas with background color
+            canvas.drawColor(backgroundColor);
 
-        // fill canvas with background color
-        canvas.drawColor(backgroundColor);
+            if (gate == null) {
+                return;
+            }
 
-        if (gate == null) {
-            return;
+            closestGatewayOpening = gate.getClosestGateway()
+                    .flatMap(Gateway::getClosestOrLockedInOpening)
+                    .blockingGet();
+
+            // respect padding
+            canvas.translate(getPaddingLeft(), getPaddingTop());
+
+            int saveCount = canvas.save();
+
+            // center the gate
+            canvas.translate((gateWidth - gatewayWidth) / 2, 0);
+
+            // draw gateways
+            List<Gateway> gateways = gate.getGateways().toList().blockingGet();
+            for (Gateway gateway : gateways) {
+                drawGateway(canvas, gateway);
+                canvas.translate(0, gatewayHeight);
+            }
+
+            canvas.restoreToCount(saveCount);
+
+            // draw gateway detection beacons
+            drawDirectionLockBeacons(canvas);
+        } catch (Exception e) {
+            Timber.w(e, "Unable to draw gate");
         }
-
-        closestGatewayOpening = gate.getClosestGateway()
-                .flatMap(Gateway::getClosestOrLockedInOpening)
-                .blockingGet();
-
-        int saveCount = canvas.save();
-
-        // center the gate
-        canvas.translate((getWidth() - gatewayWidth) / 2, 0);
-
-        // draw gateways
-        List<Gateway> gateways = gate.getGateways().toList().blockingGet();
-        float gateHeight = gateways.size() * (gatewayHeight + gatewayOpeningMargin);
-        for (Gateway gateway : gateways) {
-            drawGateway(canvas, gateway);
-            canvas.translate(0, gatewayHeight + gatewayOpeningMargin);
-        }
-
-        canvas.restoreToCount(saveCount);
-
-        // draw gateway detection beacons
-        drawDirectionLockBeacons(canvas);
 
         // invalidate for animations
         invalidate();
@@ -455,7 +484,7 @@ public class GateView extends View implements GateVisualization {
                 .toList()
                 .blockingGet();
 
-        canvas.translate(0, (getHeight() - (entryLockBeacons.size() * (directionLockBeaconHeight))) / 2);
+        canvas.translate(0, (gateHeight - (entryLockBeacons.size() * (directionLockBeaconHeight))) / 2);
         for (GatewayDirectionLockBeacon directionLockBeacon : entryLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
             canvas.translate(0, directionLockBeaconHeight);
@@ -464,7 +493,7 @@ public class GateView extends View implements GateVisualization {
         canvas.restoreToCount(saveCount);
         saveCount = canvas.save();
 
-        canvas.translate(getWidth() - directionLockBeaconWidth, 0);
+        canvas.translate(gateWidth - directionLockBeaconWidth, 0);
 
         // exit
         List<GatewayDirectionLockBeacon> exitLockBeacons = gate.getDirectionLockBeacons()
@@ -472,7 +501,7 @@ public class GateView extends View implements GateVisualization {
                 .toList()
                 .blockingGet();
 
-        canvas.translate(0, (getHeight() - (exitLockBeacons.size() * (directionLockBeaconHeight))) / 2);
+        canvas.translate(0, (gateHeight - (exitLockBeacons.size() * (directionLockBeaconHeight))) / 2);
         for (GatewayDirectionLockBeacon directionLockBeacon : exitLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
             canvas.translate(0, directionLockBeaconHeight);

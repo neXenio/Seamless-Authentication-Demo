@@ -16,9 +16,7 @@ import com.nexenio.seamlessauthentication.AuthenticationProperties;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
-import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
-import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayOpening;
 import com.nexenio.seamlessauthentication.distance.DistanceProvider;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
@@ -30,6 +28,7 @@ import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateVie
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -77,6 +76,7 @@ public class AuthenticatorDetailFragment extends Fragment {
     private TextView idTextView;
     private TextView descriptionTextView;
     private GateView gateView;
+    private TextView authenticationIdsTextView;
     private MaterialButton authenticateButton;
     private SwitchCompat seamlessAuthenticationSwitch;
     private AppCompatSpinner rangeSpinner;
@@ -136,6 +136,7 @@ public class AuthenticatorDetailFragment extends Fragment {
         gateView = rootView.findViewById(R.id.visualizationView);
         seamlessAuthenticationSwitch = rootView.findViewById(R.id.seamlessAuthenticationSwitch);
         rangeSpinner = rootView.findViewById(R.id.rangeSpinner);
+        authenticationIdsTextView = rootView.findViewById(R.id.authenticationIdsTextView);
         authenticateButton = rootView.findViewById(R.id.authenticateButton);
 
         authenticateButton.setOnClickListener(v -> authenticate(authenticator));
@@ -171,6 +172,12 @@ public class AuthenticatorDetailFragment extends Fragment {
 
             }
         });
+
+        authenticationIdsTextView.setText(getContext().getString(
+                R.string.description_authentication_ids,
+                authenticationProperties.getUserId().blockingGet().toString(),
+                authenticationProperties.getDeviceId().blockingGet().toString()
+        ));
 
         beaconDescriptionTextView = rootView.findViewById(R.id.beaconDescriptionTextView);
 
@@ -268,15 +275,17 @@ public class AuthenticatorDetailFragment extends Fragment {
 
         if (authenticator instanceof Gate) {
             Gate gate = (Gate) authenticator;
-            List<GatewayDetectionBeacon> detectionBeacons = gate.getGateways()
-                    .flatMap(Gateway::getOpenings)
-                    .flatMap(GatewayOpening::getDetectionBeacons)
-                    .toList()
-                    .blockingGet();
+            List<Beacon> beacons = new ArrayList<>();
+
+            beacons.addAll(gate.getDetectionBeacons()
+                    .toList().blockingGet());
+
+            beacons.addAll(gate.getDirectionLockBeacons()
+                    .toList().blockingGet());
 
             StringBuilder beaconDescription = new StringBuilder();
-            for (GatewayDetectionBeacon detectionBeacon : detectionBeacons) {
-                beaconDescription.append(getReadableDescription(detectionBeacon, getContext()))
+            for (Beacon beacon : beacons) {
+                beaconDescription.append(getReadableDescription(beacon, getContext()))
                         .append("\n\n");
             }
             beaconDescriptionTextView.setText(beaconDescription.toString());
@@ -303,11 +312,18 @@ public class AuthenticatorDetailFragment extends Fragment {
             GatewayDetectionBeacon gatewayDetectionBeacon = (GatewayDetectionBeacon) beacon;
             String gate = String.valueOf(gatewayDetectionBeacon.getGateIndex());
             String gateway = String.valueOf(gatewayDetectionBeacon.getGatewayIndex());
-            String direction = getReadableBeaconDirection(gatewayDetectionBeacon, context);
+            String direction = getReadableBeaconDirection(gatewayDetectionBeacon.getGatewayDirection(), context);
             String position = getReadableBeaconPosition(gatewayDetectionBeacon, context);
 
             description.append("\n").append(context.getString(R.string.gateway_detection_beacon_description,
                     gate, gateway, direction, position));
+        } else if (beacon instanceof GatewayDirectionLockBeacon) {
+            GatewayDirectionLockBeacon directionLockBeacon = (GatewayDirectionLockBeacon) beacon;
+            String gate = String.valueOf(directionLockBeacon.getGateIndex());
+            String direction = getReadableBeaconDirection(directionLockBeacon.getGatewayDirection(), context);
+
+            description.append("\n").append(context.getString(R.string.gateway_direction_lock_beacon_description,
+                    gate, direction));
         }
 
         return description.toString();
@@ -354,8 +370,8 @@ public class AuthenticatorDetailFragment extends Fragment {
         }
     }
 
-    public static String getReadableBeaconDirection(@NonNull GatewayDetectionBeacon beacon, @NonNull Context context) {
-        switch (beacon.getGatewayDirection()) {
+    public static String getReadableBeaconDirection(@GatewayDirection.Direction int direction, @NonNull Context context) {
+        switch (direction) {
             case GatewayDirection.ENTRY: {
                 return context.getString(R.string.beacon_direction_exit);
             }

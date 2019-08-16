@@ -28,12 +28,6 @@
                     style="@style/AppTheme.CardView.ContentTextView"
                     android:text="@string/authenticator_name_unknown"/>
 
-            <com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView
-                    android:id="@+id/visualizationView"
-                    android:padding="5dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
@@ -49,10 +43,17 @@
                     android:text="@string/caption_authentication"/>
 
             <TextView
+                    android:visibility="gone"
                     style="@style/AppTheme.CardView.SubtitleTextView"
                     android:text="@string/caption_authentication"/>
 
             <TextView
+                    android:id="@+id/authenticationIdsTextView"
+                    style="@style/AppTheme.CardView.ContentTextView"
+                    android:text="@string/description_authentication_ids"/>
+
+            <TextView
+                    android:visibility="gone"
                     style="@style/AppTheme.CardView.ContentTextView"
                     android:text="@string/description_authentication"/>
 
@@ -133,9 +134,35 @@
 
             <TextView
                     style="@style/AppTheme.CardView.TitleTextView"
+                    android:text="@string/caption_visualization"/>
+
+            <TextView
+                    android:visibility="gone"
+                    style="@style/AppTheme.CardView.SubtitleTextView"
+                    android:text="@string/caption_visualization"/>
+
+            <com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView
+                    android:id="@+id/visualizationView"
+                    android:padding="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+            style="@style/AppTheme.CardView">
+
+        <LinearLayout
+                style="@style/AppTheme.CardView.LinearLayout">
+
+            <TextView
+                    style="@style/AppTheme.CardView.TitleTextView"
                     android:text="@string/caption_beacons"/>
 
             <TextView
+                    android:visibility="gone"
                     style="@style/AppTheme.CardView.SubtitleTextView"
                     android:text="@string/caption_beacons"/>
 

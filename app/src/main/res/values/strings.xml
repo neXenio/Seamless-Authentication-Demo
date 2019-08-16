@@ -36,8 +36,11 @@
 
     <string name="caption_authentication">Authentication</string>
     <string name="description_authentication">You can enable seamless authentication for this device. If enabled, you will be automatically authenticated when you are in range and while this view is open.</string>
+    <string name="description_authentication_ids">This app uses a randomly generated user ID and device ID for demonstration purposes.\n\nUser ID:\n%1$s\n\nDevice ID:\n%2$s</string>
     <string name="label_seamless_authentication">Seamless authentication</string>
     <string name="label_authentication_range">Authentication range</string>
+
+    <string name="caption_visualization">Visualization</string>
 
     <string name="caption_beacons">Beacons</string>
     <string name="description_beacons">This device uses detection beacons. You can check their configuration below.</string>
@@ -58,6 +61,7 @@
 
     <string name="generic_beacon_description">Type: %1$s\nMAC: %2$s\nTX: %3$s dBm\nCalibrated RSSI: %5$s dBm\nRSSI: %4$s dBm\nDistance: %6$s meters\nInterval: %7$s Hz</string>
     <string name="gateway_detection_beacon_description">Gate Index: %1$s\nGateway Index: %2$s\nDirection: %3$s\nPosition: %4$s</string>
+    <string name="gateway_direction_lock_beacon_description">Gate Index: %1$s\nDirection: %2$s</string>
 
     <string-array name="authentication_ranges">
         <item>50 cm</item>
