@@ -29,7 +29,8 @@
                 android:name=".detail.AuthenticatorDetailActivity"
                 android:label="@string/title_authenticator_detail"
                 android:parentActivityName=".overview.AuthenticatorListActivity"
-                android:theme="@style/AppTheme.NoActionBar">
+                android:theme="@style/AppTheme.NoActionBar"
+                android:exported="true">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity"/>

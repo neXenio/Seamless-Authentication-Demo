@@ -19,6 +19,7 @@ import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
+import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayMode;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayOpening;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
@@ -26,14 +27,16 @@ import com.nexenio.seamlessauthenticationintegrationsample.R;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import timber.log.Timber;
 
 public class GateView extends View implements GateVisualization {
+
+    private static double NEARBY_DISTANCE_THRESHOLD = 2;
 
     private Gate gate;
     private GatewayOpening closestGatewayOpening;
@@ -197,7 +200,7 @@ public class GateView extends View implements GateVisualization {
         }
 
         closestGatewayOpening = gate.getClosestGateway()
-                .flatMap(Gateway::getClosestOpening)
+                .flatMap(Gateway::getClosestOrLockedInOpening)
                 .blockingGet();
 
         int saveCount = canvas.save();
@@ -336,23 +339,41 @@ public class GateView extends View implements GateVisualization {
     private void drawGatewayOpening(Canvas canvas, GatewayOpening gatewayOpening) {
         int saveCount = canvas.save();
 
-        boolean isEntry = gatewayOpening.getDirection().blockingGet() == GatewayDirection.ENTRY;
+        int direction = gatewayOpening.getDirection().blockingGet();
+        int lockMode = gate.getDirectionLockMode().blockingGet();
+        boolean isEntry = direction == GatewayDirection.ENTRY;
+        double distance = gatewayOpening.getDistance().onErrorReturnItem(99.0).blockingGet();
+        boolean isAllowed = GatewayMode.modeAllowsDirection(lockMode, direction);
+        boolean isClosest = gatewayOpening == closestGatewayOpening;
+        boolean isNearby = distance < NEARBY_DISTANCE_THRESHOLD;
+
         float offsetFactor = isEntry ? -1 : 1;
 
         canvas.translate(offsetFactor * 2 * gatewayOpeningMargin, 0);
 
-        gatewayOpeningFillPaint.setAlpha(gatewayOpening == closestGatewayOpening ? 192 : 64);
-
+        gatewayOpeningFillPaint.setAlpha(isClosest && isNearby ? 192 : isAllowed ? 128 : 32);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningFillPaint);
+
+        gatewayOpeningStrokePaint.setAlpha(isClosest && isNearby ? 255 : isAllowed ? 192 : 128);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningStrokePaint);
 
         String openingText = isEntry ? entryText : exitText;
-
         textPaint.setColor(gatewayOpeningStrokePaint.getColor());
         canvas.drawText(
                 openingText,
-                gatewayOpeningRect.right / 2,
-                ((gatewayOpeningRect.bottom / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                gatewayOpeningWidth / 2,
+                ((gatewayOpeningHeight / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                textPaint
+        );
+
+        canvas.rotate(offsetFactor * -90);
+
+        String distanceText = String.format(Locale.US, "%.1f m", distance);
+        textPaint.setColor(gatewayOpeningStrokePaint.getColor());
+        canvas.drawText(
+                distanceText,
+                -offsetFactor * (gatewayOpeningHeight / 2),
+                isEntry ? -gatewayOpeningMargin : gatewayOpeningWidth - gatewayOpeningMargin,
                 textPaint
         );
 
@@ -427,15 +448,6 @@ public class GateView extends View implements GateVisualization {
 
     private void drawDirectionLockBeacons(Canvas canvas) {
         int saveCount = canvas.save();
-
-        List<GatewayDirectionLockBeacon> directionLockBeacons = gate.getDirectionLockBeacons()
-                .toList()
-                .blockingGet();
-
-        Timber.v("Direction lock beacons: %d", directionLockBeacons.size());
-        for (GatewayDirectionLockBeacon directionLockBeacon : directionLockBeacons) {
-            Timber.v(" - %s %s %s", directionLockBeacon.getMacAddress(), directionLockBeacon, directionLockBeacon.getLatestAdvertisingPacket());
-        }
 
         // entry
         List<GatewayDirectionLockBeacon> entryLockBeacons = gate.getDirectionLockBeacons()
