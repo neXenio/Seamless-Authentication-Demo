@@ -87,6 +87,18 @@ public class GateView extends View implements GateVisualization {
 
     private Paint beaconStrokePaint;
     private Paint beaconFillPaint;
+    private Paint advertisingPacketPaint;
+
+    private Paint maskPaint;
+
+    private Bitmap resultBitmap;
+    private Canvas resultCanvas;
+
+    private Bitmap sourceBitmap;
+    private Canvas sourceCanvas;
+
+    private Bitmap destinationBitmap;
+    private Canvas destinationCanvas;
 
     private String gatewayText = "";
     private String entryText = "";
@@ -159,6 +171,12 @@ public class GateView extends View implements GateVisualization {
         beaconFillPaint.setColor(bluetoothColor);
 
         beaconStrokePaint = new Paint(gatewaySeparatorStrokePaint);
+
+        advertisingPacketPaint = new Paint(beaconStrokePaint);
+        advertisingPacketPaint.setColor(beaconFillPaint.getColor());
+
+        maskPaint = new Paint();
+        maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
 
         gatewayText = getContext().getString(R.string.gateway_description);
         entryText = getContext().getString(R.string.entry_description);
@@ -317,21 +335,21 @@ public class GateView extends View implements GateVisualization {
     }
 
     private void drawGatewaySwivelArm(Canvas canvas) {
-        Bitmap resultBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas resultCanvas = new Canvas(resultBitmap);
+        resultBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        resultCanvas = new Canvas(resultBitmap);
 
         // destination
-        Bitmap dstBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas dstCanvas = new Canvas(dstBitmap);
+        destinationBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        destinationCanvas = new Canvas(destinationBitmap);
 
-        dstCanvas.drawCircle(
+        destinationCanvas.drawCircle(
                 gatewayWidth / 2,
                 gatewaySeparatorHeight,
                 gatewaySeparatorHeight * 0.66f,
                 gatewaySeparatorFillPaint
         );
 
-        dstCanvas.drawCircle(
+        destinationCanvas.drawCircle(
                 gatewayWidth / 2,
                 gatewaySeparatorHeight,
                 gatewaySeparatorHeight * 0.66f,
@@ -339,18 +357,19 @@ public class GateView extends View implements GateVisualization {
         );
 
         // source
-        Bitmap srcBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas srcCanvas = new Canvas(srcBitmap);
+        sourceBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        sourceCanvas = new Canvas(sourceBitmap);
 
-        srcCanvas.drawRect(gatewaySeparatorRect, backgroundPaint);
+        sourceCanvas.drawRect(gatewaySeparatorRect, backgroundPaint);
 
         // mask
-        Paint maskPaint = new Paint();
-        maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-        resultCanvas.drawBitmap(dstBitmap, 0, 0, null);
-        resultCanvas.drawBitmap(srcBitmap, 0, 0, maskPaint);
+        resultCanvas.drawBitmap(destinationBitmap, 0, 0, null);
+        resultCanvas.drawBitmap(sourceBitmap, 0, 0, maskPaint);
 
         canvas.drawBitmap(resultBitmap, 0, 0, null);
+        resultBitmap.recycle();
+        destinationBitmap.recycle();
+        sourceBitmap.recycle();
 
         // barrier
         float barrierStartY = gatewaySeparatorHeight + (gatewaySeparatorHeight * 0.66f);
@@ -487,6 +506,13 @@ public class GateView extends View implements GateVisualization {
         canvas.translate(0, (gateHeight - (entryLockBeacons.size() * (directionLockBeaconHeight))) / 2);
         for (GatewayDirectionLockBeacon directionLockBeacon : entryLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
+
+            // draw advertising packets
+            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
+            for (AdvertisingPacket advertisingPacket : advertisingPackets) {
+                drawBeaconAdvertisingPacket(canvas, advertisingPacket);
+            }
+
             canvas.translate(0, directionLockBeaconHeight);
         }
 
@@ -504,6 +530,13 @@ public class GateView extends View implements GateVisualization {
         canvas.translate(0, (gateHeight - (exitLockBeacons.size() * (directionLockBeaconHeight))) / 2);
         for (GatewayDirectionLockBeacon directionLockBeacon : exitLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
+
+            // draw advertising packets
+            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
+            for (AdvertisingPacket advertisingPacket : advertisingPackets) {
+                drawBeaconAdvertisingPacket(canvas, advertisingPacket);
+            }
+
             canvas.translate(0, directionLockBeaconHeight);
         }
 
@@ -525,8 +558,8 @@ public class GateView extends View implements GateVisualization {
         textPaint.setColor(beaconStrokePaint.getColor());
         canvas.drawText(
                 String.valueOf(beacon.getMinor()),
-                directionLockBeaconRect.right / 2,
-                ((directionLockBeaconRect.bottom / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
+                directionLockBeaconWidth / 2,
+                ((directionLockBeaconHeight / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
                 textPaint
         );
 
@@ -534,11 +567,18 @@ public class GateView extends View implements GateVisualization {
     }
 
     private void drawBeaconAdvertisingPacket(Canvas canvas, AdvertisingPacket advertisingPacket) {
-        /*
-        long maximumTimestamp = System.currentTimeMillis() - 250;
+        long maximumTimestamp = System.currentTimeMillis();
         long minimumTimestamp = maximumTimestamp - TimeUnit.SECONDS.toMillis(2);
         float recencyScore = getRecencyScore(advertisingPacket.getTimestamp(), minimumTimestamp, maximumTimestamp);
-        */
+
+        advertisingPacketPaint.setAlpha(Math.round(128 * recencyScore));
+
+        canvas.drawCircle(
+                directionLockBeaconWidth / 2,
+                directionLockBeaconHeight / 2,
+                (directionLockBeaconWidth / 2) + ((1 - recencyScore) * directionLockBeaconWidth * 3),
+                advertisingPacketPaint
+        );
     }
 
     @Override
