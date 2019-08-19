@@ -15,14 +15,6 @@ buildscript {
 
 allprojects {
     repositories {
-        // TODO: remove local artifactory
-        maven {
-            url "https://artifactory.nexenio.local/artifactory/behaviour-authentication-dev"
-            credentials {
-                username System.getenv("ARTIFACTORY_LOCAL_USERNAME") ? System.getenv("ARTIFACTORY_LOCAL_USERNAME") : project.property("ARTIFACTORY_LOCAL_USERNAME")
-                password System.getenv("ARTIFACTORY_LOCAL_PASSWORD") ? System.getenv("ARTIFACTORY_LOCAL_PASSWORD") : project.property("ARTIFACTORY_LOCAL_PASSWORD")
-            }
-        }
         maven {
             url "https://artifactory.nexenio.com/artifactory/${nexenio_artifactory_repository}/"
             credentials {
