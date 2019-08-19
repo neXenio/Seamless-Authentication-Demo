@@ -1,4 +1,4 @@
-package com.nexenio.seamlessauthenticationintegrationsample;
+package com.nexenio.seamlessauthenticationintegrationsample.overview;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
+import com.nexenio.seamlessauthenticationintegrationsample.R;
+import com.nexenio.seamlessauthenticationintegrationsample.detail.AuthenticatorDetailActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.detail.AuthenticatorDetailFragment;
 
 import java.util.ArrayList;
 import java.util.List;

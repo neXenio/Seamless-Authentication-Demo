@@ -1,4 +1,4 @@
-package com.nexenio.seamlessauthenticationintegrationsample;
+package com.nexenio.seamlessauthenticationintegrationsample.overview;
 
 import android.content.Context;
 import android.view.View;
@@ -9,6 +9,7 @@ import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayOpening;
+import com.nexenio.seamlessauthenticationintegrationsample.R;
 
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Single;
 
-class AuthenticatorViewHolder extends RecyclerView.ViewHolder {
+public class AuthenticatorViewHolder extends RecyclerView.ViewHolder {
 
     private final TextView titleTextView;
     private final TextView subtitleTextView;
