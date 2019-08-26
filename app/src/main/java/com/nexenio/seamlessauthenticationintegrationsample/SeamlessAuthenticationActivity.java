@@ -74,7 +74,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         indicateDetectionStopped();
     }
 
-    abstract void setContentView();
+    protected abstract void setContentView();
 
     @CallSuper
     protected void initializeViews() {

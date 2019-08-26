@@ -27,7 +27,12 @@ allprojects {
         }
         google()
         jcenter()
-
+    }
+    configurations.all {
+        resolutionStrategy {
+            // affects dependencies ending with "-SNAPSHOT"
+            cacheChangingModulesFor 0, 'seconds'
+        }
     }
 }
 

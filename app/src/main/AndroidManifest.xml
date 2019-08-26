@@ -16,7 +16,7 @@
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
-                android:name=".AuthenticatorListActivity"
+                android:name=".overview.AuthenticatorListActivity"
                 android:label="@string/title_authenticator_list"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -26,13 +26,14 @@
         </activity>
 
         <activity
-                android:name=".AuthenticatorDetailActivity"
+                android:name=".detail.AuthenticatorDetailActivity"
                 android:label="@string/title_authenticator_detail"
-                android:parentActivityName=".AuthenticatorListActivity"
-                android:theme="@style/AppTheme.NoActionBar">
+                android:parentActivityName=".overview.AuthenticatorListActivity"
+                android:theme="@style/AppTheme.NoActionBar"
+                android:exported="true">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.AuthenticatorListActivity"/>
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity"/>
         </activity>
 
     </application>

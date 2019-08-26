@@ -1,8 +1,12 @@
-package com.nexenio.seamlessauthenticationintegrationsample;
+package com.nexenio.seamlessauthenticationintegrationsample.detail;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+
+import com.nexenio.seamlessauthenticationintegrationsample.R;
+import com.nexenio.seamlessauthenticationintegrationsample.SeamlessAuthenticationActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
 
 import androidx.appcompat.app.ActionBar;
 
