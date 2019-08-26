@@ -21,12 +21,16 @@ import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
+import java.util.concurrent.TimeUnit;
+
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -94,6 +98,11 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         startSeamlessAuthenticatorDetection();
+
+        Flowable.timer(1, TimeUnit.SECONDS)
+                .ignoreElements()
+                .andThen(Completable.fromAction(this::checkPermissions))
+                .subscribe();
     }
 
     @CallSuper
