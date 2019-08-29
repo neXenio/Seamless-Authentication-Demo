@@ -105,9 +105,6 @@ public class AuthenticatorDetailFragment extends Fragment {
 
         authenticationProperties = new AuthenticationProperties() {
 
-            private UUID userId = UUID.randomUUID();
-            private UUID deviceId = UUID.randomUUID();
-
             @Override
             public Single<String> getUserName() {
                 return Single.just("Demo User");
@@ -115,12 +112,12 @@ public class AuthenticatorDetailFragment extends Fragment {
 
             @Override
             public Single<UUID> getUserId() {
-                return Single.just(userId);
+                return Single.just(application.getUserId());
             }
 
             @Override
             public Single<UUID> getDeviceId() {
-                return Single.just(deviceId);
+                return Single.just(application.getDeviceId());
             }
         };
     }
