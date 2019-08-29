@@ -72,7 +72,6 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         initializeViews();
 
         indicateDetectionStopped();
-        startSeamlessAuthenticatorDetection();
     }
 
     protected abstract void setContentView();
@@ -98,7 +97,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //startSeamlessAuthenticatorDetection();
+        startSeamlessAuthenticatorDetection();
 
         Flowable.timer(1, TimeUnit.SECONDS)
                 .ignoreElements()
@@ -110,13 +109,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        //stopSeamlessAuthenticatorDetection();
-    }
-
-    @Override
-    protected void onDestroy() {
         stopSeamlessAuthenticatorDetection();
-        super.onDestroy();
     }
 
     /*
@@ -126,10 +119,6 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @CallSuper
     protected void startSeamlessAuthenticatorDetection() {
         Timber.d("startSeamlessAuthenticatorDetection() called");
-        if (authenticatorDetectorDisposable != null && !authenticatorDetectorDisposable.isDisposed()) {
-            Timber.w("Not starting seamless authenticator detection, already running");
-            return;
-        }
         authenticatorDetectorDisposable = authenticatorDetector.detect()
                 .ignoreElements()
                 .doOnSubscribe(subscription -> runOnUiThread(this::indicateDetectionStarted))
