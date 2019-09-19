@@ -74,6 +74,8 @@ public class GateView extends View implements GateVisualization {
     private int foregroundColor;
     private int bluetoothColor;
     private int errorColor;
+    private int lockedColor;
+    private int unlockedColor;
 
     private Paint backgroundPaint;
     private Paint strokePaint;
@@ -136,6 +138,8 @@ public class GateView extends View implements GateVisualization {
         foregroundColor = Color.BLACK;
         bluetoothColor = Color.parseColor("#90caf9");
         errorColor = Color.parseColor("#7F0000");
+        lockedColor = Color.parseColor("#7f0000");
+        unlockedColor = Color.parseColor("#003300");
 
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
@@ -165,7 +169,7 @@ public class GateView extends View implements GateVisualization {
         gatewayOpeningStrokePaint.setPathEffect(dash);
 
         gatewayOpeningFillPaint = new Paint(backgroundPaint);
-        gatewayOpeningFillPaint.setColor(Color.parseColor("#99DDDDDD"));
+        gatewayOpeningFillPaint.setColor(Color.parseColor("#DDDDDD"));
 
         beaconFillPaint = new Paint(gatewaySeparatorFillPaint);
         beaconFillPaint.setColor(bluetoothColor);
@@ -389,6 +393,7 @@ public class GateView extends View implements GateVisualization {
 
         int direction = gatewayOpening.getDirection().blockingGet();
         int lockMode = gate.getDirectionLockMode().blockingGet();
+        boolean requiresAuthentication = gatewayOpening.requiresAuthentication().blockingGet();
         boolean isEntry = direction == GatewayDirection.ENTRY;
         double distance = gatewayOpening.getDistance().onErrorReturnItem(99.0).blockingGet();
         boolean isAllowed = GatewayMode.modeAllowsDirection(lockMode, direction);
@@ -399,10 +404,11 @@ public class GateView extends View implements GateVisualization {
 
         canvas.translate(offsetFactor * 2 * gatewayOpeningMargin, 0);
 
-        gatewayOpeningFillPaint.setAlpha(isClosest && isNearby ? 192 : isAllowed ? 128 : 32);
+        gatewayOpeningFillPaint.setAlpha(isClosest && isNearby ? 224 : isAllowed ? 96 : 32);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningFillPaint);
 
-        gatewayOpeningStrokePaint.setAlpha(isClosest && isNearby ? 255 : isAllowed ? 192 : 128);
+        gatewayOpeningStrokePaint.setColor(requiresAuthentication ? lockedColor : unlockedColor);
+        gatewayOpeningStrokePaint.setAlpha(isClosest && isNearby ? 255 : isAllowed ? 128 : 64);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningStrokePaint);
 
         String openingText = isEntry ? entryText : exitText;
@@ -417,7 +423,6 @@ public class GateView extends View implements GateVisualization {
         canvas.rotate(offsetFactor * -90);
 
         String distanceText = String.format(Locale.US, "%.1f m", distance);
-        textPaint.setColor(gatewayOpeningStrokePaint.getColor());
         canvas.drawText(
                 distanceText,
                 -offsetFactor * (gatewayOpeningHeight / 2),
