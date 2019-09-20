@@ -37,8 +37,6 @@ import timber.log.Timber;
 
 public class GateView extends View implements GateVisualization {
 
-    private static double NEARBY_DISTANCE_THRESHOLD = 2;
-
     private Gate gate;
     private GatewayOpening closestGatewayOpening;
 
@@ -396,19 +394,20 @@ public class GateView extends View implements GateVisualization {
         boolean requiresAuthentication = gatewayOpening.requiresAuthentication().blockingGet();
         boolean isEntry = direction == GatewayDirection.ENTRY;
         double distance = gatewayOpening.getDistance().onErrorReturnItem(99.0).blockingGet();
+        double recommendedDistance = gatewayOpening.getRecommendedAuthenticationDistance().blockingGet();
         boolean isAllowed = GatewayMode.modeAllowsDirection(lockMode, direction);
         boolean isClosest = gatewayOpening == closestGatewayOpening;
-        boolean isNearby = distance < NEARBY_DISTANCE_THRESHOLD;
+        boolean isInRange = distance < recommendedDistance;
 
         float offsetFactor = isEntry ? -1 : 1;
 
         canvas.translate(offsetFactor * 2 * gatewayOpeningMargin, 0);
 
-        gatewayOpeningFillPaint.setAlpha(isClosest && isNearby ? 224 : isAllowed ? 96 : 32);
+        gatewayOpeningFillPaint.setAlpha(isClosest && isInRange ? 224 : isAllowed ? 96 : 32);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningFillPaint);
 
         gatewayOpeningStrokePaint.setColor(requiresAuthentication ? lockedColor : unlockedColor);
-        gatewayOpeningStrokePaint.setAlpha(isClosest && isNearby ? 255 : isAllowed ? 128 : 64);
+        gatewayOpeningStrokePaint.setAlpha(isClosest && isInRange ? 255 : isAllowed ? 128 : 64);
         canvas.drawRect(gatewayOpeningRect, gatewayOpeningStrokePaint);
 
         String openingText = isEntry ? entryText : exitText;
