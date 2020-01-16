@@ -3,6 +3,7 @@
 
     <string name="title_authenticator_list">Authenticators</string>
     <string name="title_authenticator_detail">Authenticator Detail</string>
+    <string name="title_authenticator_health">Authenticator Health</string>
 
     <string name="unknown">unknown</string>
 

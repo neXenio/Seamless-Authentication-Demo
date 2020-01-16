@@ -37,6 +37,17 @@
                     android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />
         </activity>
 
+        <activity
+                android:name=".health.AuthenticatorHealthActivity"
+                android:exported="true"
+                android:label="@string/title_authenticator_health"
+                android:parentActivityName=".overview.AuthenticatorListActivity"
+                android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />
+        </activity>
+
     </application>
 
 </manifest>
