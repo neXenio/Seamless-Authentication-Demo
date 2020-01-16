@@ -33,7 +33,7 @@ public class AuthenticatorHealthActivity extends SeamlessAuthenticationActivity 
             AuthenticatorHealthFragment fragment = new AuthenticatorHealthFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.authenticator_detail_container, fragment)
+                    .add(R.id.authenticator_health_container, fragment)
                     .commit();
         }
     }

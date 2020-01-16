@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/coordinatorLayout"
@@ -31,7 +30,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     app:layout_collapseMode="pin"
-                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -41,7 +40,7 @@
             android:id="@+id/authenticator_detail_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <FrameLayout
             android:id="@+id/progressBarFrameLayout"
@@ -53,10 +52,10 @@
         <ProgressBar
                 android:id="@+id/progressBar"
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:indeterminate="true"
-                android:layout_gravity="center"
                 android:layout_width="match_parent"
-                android:layout_height="18dp"/>
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:indeterminate="true" />
 
     </FrameLayout>
 
@@ -66,8 +65,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|start"
             android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@drawable/ic_autorenew_black_24dp"
             app:layout_anchor="@+id/authenticator_detail_container"
-            app:layout_anchorGravity="top|end"/>
+            app:layout_anchorGravity="top|end"
+            app:srcCompat="@drawable/ic_autorenew_black_24dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

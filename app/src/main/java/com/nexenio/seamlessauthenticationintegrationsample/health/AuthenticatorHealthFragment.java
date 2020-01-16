@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
@@ -17,19 +16,17 @@ import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
-import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorViewHolder;
 import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
-import io.reactivex.Flowable;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -52,6 +49,7 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     private SeamlessAuthenticatorDetector authenticatorDetector;
     private Disposable authenticatorUpdateDisposable;
+    private Disposable healthMonitorDisposable;
 
     private SeamlessAuthenticator authenticator;
 
@@ -147,17 +145,14 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     private void startUpdatingAuthenticator() {
         Timber.d("startUpdatingAuthenticator() called");
-        authenticatorUpdateDisposable = Flowable.interval(1, TimeUnit.SECONDS)
-                .flatMapMaybe(count -> authenticatorDetector.getDetectedAuthenticators()
-                        .filter(authenticator -> authenticator.getId()
-                                .map(uuid -> uuid.equals(authenticatorId))
-                                .onErrorReturnItem(false)
-                                .blockingGet())
-                        .firstElement())
-                .subscribeOn(Schedulers.io())
+
+        healthMonitorDisposable = Completable.mergeArray(
+                monitorSblecHealth().subscribeOn(Schedulers.io()),
+                monitorGattHealth().subscribeOn(Schedulers.io())
+        ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        this::showAuthenticator,
+                        () -> Timber.i("Health monitoring completed"),
                         throwable -> Timber.w(throwable, "Unable to update authenticator")
                 );
     }
@@ -169,24 +164,12 @@ public class AuthenticatorHealthFragment extends Fragment {
         }
     }
 
-    private void showAuthenticator(@NonNull SeamlessAuthenticator authenticator) {
-        if (this.authenticator != authenticator) {
-            Timber.d("Authenticator updated: %s", authenticator);
-            this.authenticator = authenticator;
-        }
+    private Completable monitorSblecHealth() {
+        return Completable.never();
+    }
 
-        String name = AuthenticatorViewHolder.getReadableName(authenticator, getContext()).blockingGet();
-        String id = AuthenticatorViewHolder.getReadableId(authenticator, getContext()).blockingGet();
-        String description = AuthenticatorViewHolder.getReadableDescription(authenticator, getContext()).blockingGet();
-
-        if (appBarLayout != null) {
-            appBarLayout.setTitle(name);
-        }
-
-        nameTextView.setText(name);
-        idTextView.setText(id);
-        descriptionTextView.setText(description);
-
+    private Completable monitorGattHealth() {
+        return Completable.never();
     }
 
 }
