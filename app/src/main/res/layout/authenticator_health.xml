@@ -1,178 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/black"
         android:orientation="vertical"
         tools:context=".detail.AuthenticatorDetailFragment">
 
-    <com.google.android.material.card.MaterialCardView
-            style="@style/AppTheme.CardView">
+    <RelativeLayout
+            android:id="@+id/sblecContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-        <LinearLayout
-                style="@style/AppTheme.CardView.LinearLayout">
+        <TextView
+                android:id="@+id/sblecTitle"
+                style="@style/AppTheme.CardView.TitleTextView"
+                android:layout_centerInParent="true"
+                android:text="SBLEC"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
 
-            <TextView
-                    android:id="@+id/nameTextView"
-                    style="@style/AppTheme.CardView.TitleTextView"
-                    android:text="@string/authenticator_name_unknown"/>
+        <TextView
+                android:id="@+id/sblecDescription"
+                style="@style/AppTheme.CardView.ContentTextView"
+                android:layout_below="@id/sblecTitle"
+                android:layout_centerHorizontal="true"
+                android:text="@string/status_unknown"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
 
-            <TextView
-                    android:id="@+id/idTextView"
-                    style="@style/AppTheme.CardView.SubtitleTextView"
-                    android:text="@string/authenticator_id_unknown"/>
+    </RelativeLayout>
 
-            <TextView
-                    android:id="@+id/descriptionTextView"
-                    style="@style/AppTheme.CardView.ContentTextView"
-                    android:text="@string/authenticator_name_unknown"/>
+    <RelativeLayout
+            android:id="@+id/gattContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-        </LinearLayout>
+        <TextView
+                android:id="@+id/gattTitle"
+                style="@style/AppTheme.CardView.TitleTextView"
+                android:layout_centerInParent="true"
+                android:text="GATT"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
 
-    </com.google.android.material.card.MaterialCardView>
+        <TextView
+                android:id="@+id/gattDescription"
+                style="@style/AppTheme.CardView.ContentTextView"
+                android:layout_below="@id/gattTitle"
+                android:layout_centerHorizontal="true"
+                android:text="@string/status_unknown"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
 
-    <com.google.android.material.card.MaterialCardView
-            style="@style/AppTheme.CardView">
-
-        <LinearLayout
-                style="@style/AppTheme.CardView.LinearLayout">
-
-            <TextView
-                    style="@style/AppTheme.CardView.TitleTextView"
-                    android:text="@string/caption_authentication"/>
-
-            <TextView
-                    android:visibility="gone"
-                    style="@style/AppTheme.CardView.SubtitleTextView"
-                    android:text="@string/caption_authentication"/>
-
-            <TextView
-                    android:id="@+id/authenticationIdsTextView"
-                    style="@style/AppTheme.CardView.ContentTextView"
-                    android:text="@string/description_authentication_ids"/>
-
-            <TextView
-                    android:visibility="gone"
-                    style="@style/AppTheme.CardView.ContentTextView"
-                    android:text="@string/description_authentication"/>
-
-            <RelativeLayout
-                    android:visibility="gone"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
-
-                <TextView
-                        style="@style/AppTheme.CardView.ContentTextView"
-                        android:text="@string/label_seamless_authentication"
-                        android:gravity="center|start"
-                        android:ellipsize="end"
-                        android:layout_marginBottom="0dp"
-                        android:layout_alignTop="@id/seamlessAuthenticationSwitch"
-                        android:layout_alignBottom="@id/seamlessAuthenticationSwitch"
-                        android:layout_toStartOf="@id/seamlessAuthenticationSwitch"/>
-
-                <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/seamlessAuthenticationSwitch"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="16dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                    android:visibility="gone"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
-
-                <TextView
-                        style="@style/AppTheme.CardView.ContentTextView"
-                        android:text="@string/label_authentication_range"
-                        android:gravity="center|start"
-                        android:ellipsize="end"
-                        android:layout_marginBottom="0dp"
-                        android:layout_alignTop="@id/rangeSpinner"
-                        android:layout_alignBottom="@id/rangeSpinner"
-                        android:layout_toStartOf="@id/rangeSpinner"/>
-
-                <androidx.appcompat.widget.AppCompatSpinner
-                        android:id="@+id/rangeSpinner"
-                        android:entries="@array/authentication_ranges"
-                        android:spinnerMode="dropdown"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="16dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp">
-
-                <com.google.android.material.button.MaterialButton
-                        android:id="@+id/authenticateButton"
-                        style="@style/AppTheme.CardView.TextButton"
-                        android:text="@string/action_authenticate_now"/>
-
-            </RelativeLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-            style="@style/AppTheme.CardView">
-
-        <LinearLayout
-                style="@style/AppTheme.CardView.LinearLayout">
-
-            <TextView
-                    style="@style/AppTheme.CardView.TitleTextView"
-                    android:text="@string/caption_visualization"/>
-
-            <TextView
-                    android:visibility="gone"
-                    style="@style/AppTheme.CardView.SubtitleTextView"
-                    android:text="@string/caption_visualization"/>
-
-            <com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView
-                    android:id="@+id/visualizationView"
-                    android:padding="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-            style="@style/AppTheme.CardView">
-
-        <LinearLayout
-                style="@style/AppTheme.CardView.LinearLayout">
-
-            <TextView
-                    style="@style/AppTheme.CardView.TitleTextView"
-                    android:text="@string/caption_beacons"/>
-
-            <TextView
-                    android:visibility="gone"
-                    style="@style/AppTheme.CardView.SubtitleTextView"
-                    android:text="@string/caption_beacons"/>
-
-            <TextView
-                    android:id="@+id/beaconDescriptionTextView"
-                    style="@style/AppTheme.CardView.ContentTextView"
-                    android:text="@string/description_beacons"/>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
+    </RelativeLayout>
 
 </LinearLayout>
