@@ -11,11 +11,11 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 
 /**
- * See: https://confluence.nexenio.com/display/BA/Health+Check+Response
+ * See: <a href="https://confluence.nexenio.com/display/BA/Health+Check+Response">Documentation</a>
  */
 public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
 
-    public static final short ID = 110;
+    public static final short ID = 120;
 
     private int deviceIdHashcode;
 

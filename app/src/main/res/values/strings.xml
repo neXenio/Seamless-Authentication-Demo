@@ -69,6 +69,7 @@
     <string name="monitoring_healthy">Healthy</string>
     <string name="monitoring_unhealthy">Unhealthy</string>
     <string name="monitoring_unknown">Unknown</string>
+    <string name="monitoring_checking">Checking…</string>
 
     <string-array name="authentication_ranges">
         <item>50 cm</item>

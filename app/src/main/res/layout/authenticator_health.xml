@@ -4,6 +4,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
+        android:keepScreenOn="true"
         android:orientation="vertical"
         tools:context=".detail.AuthenticatorDetailFragment">
 
@@ -30,6 +31,15 @@
                 android:textAlignment="center"
                 android:textColor="@android:color/white" />
 
+        <ImageView
+                android:id="@+id/sblecIcon"
+                android:layout_width="75dip"
+                android:layout_height="75dip"
+                android:layout_above="@id/sblecTitle"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:tint="@android:color/white" />
+
     </RelativeLayout>
 
     <RelativeLayout
@@ -54,6 +64,15 @@
                 android:text="@string/status_unknown"
                 android:textAlignment="center"
                 android:textColor="@android:color/white" />
+
+        <ImageView
+                android:id="@+id/gattIcon"
+                android:layout_width="75dip"
+                android:layout_height="75dip"
+                android:layout_above="@id/gattTitle"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:tint="@android:color/white" />
 
     </RelativeLayout>
 

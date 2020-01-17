@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nexenio.sblec.Sblec;
@@ -14,6 +15,7 @@ import com.nexenio.sblec.payload.PayloadIdFilter;
 import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
 import com.nexenio.sblec.receiver.PayloadReceiver;
 import com.nexenio.sblec.sender.PayloadSender;
+import com.nexenio.sblec.sender.SenderPayload;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
@@ -67,6 +69,8 @@ public class AuthenticatorHealthFragment extends Fragment {
     private CollapsingToolbarLayout appBarLayout;
     private TextView sblecDescriptionTextView;
     private TextView gattDescriptionTextView;
+    private ImageView sblecIconImageView;
+    private ImageView gattIconImageView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
@@ -103,6 +107,8 @@ public class AuthenticatorHealthFragment extends Fragment {
         appBarLayout = getActivity().findViewById(R.id.toolbar_layout);
         sblecDescriptionTextView = rootView.findViewById(R.id.sblecDescription);
         gattDescriptionTextView = rootView.findViewById(R.id.gattDescription);
+        sblecIconImageView = rootView.findViewById(R.id.sblecIcon);
+        gattIconImageView = rootView.findViewById(R.id.gattIcon);
 
         return rootView;
     }
@@ -153,7 +159,10 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     private Completable monitorSblecHealth() {
         return Observable.interval(1, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
-                .doOnNext(count -> Timber.d("Initiating SBLEC health check # %d", count + 1))
+                .doOnNext(count -> {
+                    Timber.d("Initiating SBLEC health check # %d", count + 1);
+                    indicateSblecChecking();
+                })
                 .flatMapCompletable(count -> getSblecHealthCheckResult()
                         .doOnSuccess(this::indicateSblecHealthy)
                         .doOnError(this::indicateSblecUnhealthy)
@@ -167,7 +176,7 @@ public class AuthenticatorHealthFragment extends Fragment {
             Disposable sendDisposable = sendSblecHealthCheckRequest()
                     .subscribeOn(Schedulers.io())
                     .subscribe(
-                            () -> Timber.v("Health request sending completed"),
+                            () -> Timber.v("SBLEC health request sending completed"),
                             emitter::onError
                     );
 
@@ -182,19 +191,26 @@ public class AuthenticatorHealthFragment extends Fragment {
         });
     }
 
+    private Single<SenderPayload> createSblecHealthCheckRequest() {
+        return Single.defer(() -> new HealthCheckRequestPayloadWrapper.Builder()
+                .setAuthenticatorId(authenticatorId)
+                .build()
+                .toSenderPayload());
+    }
+
     private Completable sendSblecHealthCheckRequest() {
-        // TODO: 2020-01-17 actually send payload
-        return Completable.never()
-                .timeout(2, TimeUnit.SECONDS)
-                .onErrorResumeNext(throwable -> {
-                    if (throwable instanceof TimeoutException) {
-                        // don't treat the timeout as error,
-                        // we want to stop it with intention
-                        return Completable.complete();
-                    } else {
-                        return Completable.error(throwable);
-                    }
-                });
+        return createSblecHealthCheckRequest()
+                .flatMapCompletable(senderPayload -> sender.send(senderPayload)
+                        .timeout(3, TimeUnit.SECONDS)
+                        .onErrorResumeNext(throwable -> {
+                            if (throwable instanceof TimeoutException) {
+                                // don't treat the timeout as error,
+                                // we want to stop it with intention
+                                return Completable.complete();
+                            } else {
+                                return Completable.error(throwable);
+                            }
+                        }));
     }
 
     private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
@@ -209,19 +225,28 @@ public class AuthenticatorHealthFragment extends Fragment {
                 .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
+    private void indicateSblecChecking() {
+        Timber.d("indicateSblecChecking() called");
+        sblecDescriptionTextView.setText(R.string.monitoring_checking);
+        sblecIconImageView.setImageResource(R.drawable.ic_autorenew_black_24dp);
+    }
+
     private void indicateSblecHealthy(@NonNull HealthCheckResult healthCheckResult) {
         Timber.d("indicateSblecHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         sblecDescriptionTextView.setText(R.string.monitoring_healthy);
+        sblecIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
     }
 
     private void indicateSblecUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateSblecUnhealthy() called with: throwable = [%s]", throwable);
         sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
+        sblecIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
     }
 
     private void indicateSblecUnknown() {
         Timber.d("indicateSblecUnknown() called");
         sblecDescriptionTextView.setText(R.string.monitoring_unknown);
+        sblecIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
     }
 
     /*
@@ -229,8 +254,11 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorGattHealth() {
-        return Observable.interval(HEALTH_CHECK_INTERVAL / 2, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
-                .doOnNext(count -> Timber.d("Initiating GATT health check # %d", count + 1))
+        return Observable.interval(HEALTH_CHECK_TIMEOUT, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .doOnNext(count -> {
+                    Timber.d("Initiating GATT health check # %d", count + 1);
+                    indicateGattChecking();
+                })
                 .flatMapCompletable(count -> getGattHealthCheckResult()
                         .doOnSuccess(this::indicateGattHealthy)
                         .doOnError(this::indicateGattUnhealthy)
@@ -243,19 +271,28 @@ public class AuthenticatorHealthFragment extends Fragment {
         return Single.error(new Throwable("GATT health check not implemented"));
     }
 
+    private void indicateGattChecking() {
+        Timber.d("indicateGattChecking() called");
+        gattDescriptionTextView.setText(R.string.monitoring_checking);
+        gattIconImageView.setImageResource(R.drawable.ic_autorenew_black_24dp);
+    }
+
     private void indicateGattHealthy(@NonNull HealthCheckResult healthCheckResult) {
         Timber.d("indicateGattHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         gattDescriptionTextView.setText(R.string.monitoring_healthy);
+        gattIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
     }
 
     private void indicateGattUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateGattUnhealthy() called with: throwable = [%s]", throwable);
         gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
+        gattIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
     }
 
     private void indicateGattUnknown() {
         Timber.d("indicateGattUnknown() called");
         gattDescriptionTextView.setText(R.string.monitoring_unknown);
+        gattIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
     }
 
 }
