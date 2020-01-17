@@ -1,7 +1,6 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
-import com.google.android.material.button.MaterialButton;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -10,21 +9,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.nexenio.seamlessauthentication.AuthenticationProperties;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
-import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -45,27 +41,18 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
     public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
 
+    private static final long HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+
     private UUID authenticatorId;
 
     private SeamlessAuthenticatorDetector authenticatorDetector;
-    private Disposable authenticatorUpdateDisposable;
     private Disposable healthMonitorDisposable;
 
     private SeamlessAuthenticator authenticator;
 
-    private AuthenticationProperties authenticationProperties;
-
     private CollapsingToolbarLayout appBarLayout;
-    private TextView nameTextView;
-    private TextView idTextView;
-    private TextView descriptionTextView;
-    private GateView gateView;
-    private TextView authenticationIdsTextView;
-    private MaterialButton authenticateButton;
-    private SwitchCompat seamlessAuthenticationSwitch;
-    private AppCompatSpinner rangeSpinner;
-
-    private TextView beaconDescriptionTextView;
+    private TextView sblecDescriptionTextView;
+    private TextView gattDescriptionTextView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
@@ -87,46 +74,17 @@ public class AuthenticatorHealthFragment extends Fragment {
             Timber.d("Authenticator ID: %s", authenticatorId);
         }
 
-        authenticationProperties = new AuthenticationProperties() {
-
-            @Override
-            public Single<String> getUserName() {
-                return Single.just("Demo User");
-            }
-
-            @Override
-            public Single<UUID> getUserId() {
-                return Single.just(application.getUserId());
-            }
-
-            @Override
-            public Single<UUID> getDeviceId() {
-                return Single.just(application.getDeviceId());
-            }
-        };
+        indicateSblecUnknown();
+        indicateGattUnknown();
     }
 
     @Override
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.authenticator_detail, container, false);
+        View rootView = inflater.inflate(R.layout.authenticator_health, container, false);
 
         appBarLayout = getActivity().findViewById(R.id.toolbar_layout);
-        idTextView = rootView.findViewById(R.id.idTextView);
-        nameTextView = rootView.findViewById(R.id.nameTextView);
-        descriptionTextView = rootView.findViewById(R.id.descriptionTextView);
-        gateView = rootView.findViewById(R.id.visualizationView);
-        seamlessAuthenticationSwitch = rootView.findViewById(R.id.seamlessAuthenticationSwitch);
-        rangeSpinner = rootView.findViewById(R.id.rangeSpinner);
-        authenticationIdsTextView = rootView.findViewById(R.id.authenticationIdsTextView);
-        authenticateButton = rootView.findViewById(R.id.authenticateButton);
-
-        authenticationIdsTextView.setText(getContext().getString(
-                R.string.description_authentication_ids,
-                authenticationProperties.getUserId().blockingGet().toString(),
-                authenticationProperties.getDeviceId().blockingGet().toString()
-        ));
-
-        beaconDescriptionTextView = rootView.findViewById(R.id.beaconDescriptionTextView);
+        sblecDescriptionTextView = rootView.findViewById(R.id.sblecDescription);
+        gattDescriptionTextView = rootView.findViewById(R.id.gattDescription);
 
         return rootView;
     }
@@ -134,42 +92,86 @@ public class AuthenticatorHealthFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        startUpdatingAuthenticator();
+        startHealthMonitoring();
     }
 
     @Override
     public void onDetach() {
-        stopUpdatingAuthenticator();
+        stopHealthMonitoring();
         super.onDetach();
     }
 
-    private void startUpdatingAuthenticator() {
-        Timber.d("startUpdatingAuthenticator() called");
+    private void startHealthMonitoring() {
+        Timber.d("startHealthMonitoring() called");
 
         healthMonitorDisposable = Completable.mergeArray(
                 monitorSblecHealth().subscribeOn(Schedulers.io()),
                 monitorGattHealth().subscribeOn(Schedulers.io())
         ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doFinally(() -> {
+                    indicateSblecUnknown();
+                    indicateGattUnknown();
+                })
                 .subscribe(
                         () -> Timber.i("Health monitoring completed"),
-                        throwable -> Timber.w(throwable, "Unable to update authenticator")
+                        throwable -> Timber.w(throwable, "Unable to monitor health")
                 );
     }
 
-    private void stopUpdatingAuthenticator() {
-        Timber.d("stopUpdatingAuthenticator() called");
-        if (authenticatorUpdateDisposable != null && !authenticatorUpdateDisposable.isDisposed()) {
-            authenticatorUpdateDisposable.dispose();
+    private void stopHealthMonitoring() {
+        Timber.d("stopHealthMonitoring() called");
+        if (healthMonitorDisposable != null && !healthMonitorDisposable.isDisposed()) {
+            healthMonitorDisposable.dispose();
         }
     }
+
+    /*
+        SBLEC Monitoring
+     */
 
     private Completable monitorSblecHealth() {
         return Completable.never();
     }
 
+    private Single<HealthCheckResult> getSblecHealthCheckResult() {
+        return Single.error(new Throwable("Not implemented"));
+    }
+
+    private void indicateSblecHealthy() {
+        sblecDescriptionTextView.setText(R.string.monitoring_healthy);
+    }
+
+    private void indicateSblecUnhealthy() {
+        sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
+    }
+
+    private void indicateSblecUnknown() {
+        sblecDescriptionTextView.setText(R.string.monitoring_unknown);
+    }
+
+    /*
+        GATT Monitoring
+     */
+
     private Completable monitorGattHealth() {
         return Completable.never();
+    }
+
+    private Single<HealthCheckResult> getGattHealthCheckResult() {
+        return Single.error(new Throwable("Not implemented"));
+    }
+
+    private void indicateGattHealthy() {
+        gattDescriptionTextView.setText(R.string.monitoring_healthy);
+    }
+
+    private void indicateGattUnhealthy() {
+        gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
+    }
+
+    private void indicateGattUnknown() {
+        gattDescriptionTextView.setText(R.string.monitoring_unknown);
     }
 
 }

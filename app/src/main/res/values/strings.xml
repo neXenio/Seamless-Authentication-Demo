@@ -66,6 +66,10 @@
     <string name="gateway_detection_beacon_description">Gate Index: %1$s\nGateway Index: %2$s\nDirection: %3$s\nPosition: %4$s</string>
     <string name="gateway_direction_lock_beacon_description">Gate Index: %1$s\nDirection: %2$s</string>
 
+    <string name="monitoring_healthy">Healthy</string>
+    <string name="monitoring_unhealthy">Unhealthy</string>
+    <string name="monitoring_unknown">Unknown</string>
+
     <string-array name="authentication_ranges">
         <item>50 cm</item>
         <item>1 m</item>
