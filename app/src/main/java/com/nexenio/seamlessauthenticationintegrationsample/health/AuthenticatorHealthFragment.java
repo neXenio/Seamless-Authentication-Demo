@@ -9,6 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.nexenio.sblec.Sblec;
+import com.nexenio.sblec.payload.PayloadIdFilter;
+import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
+import com.nexenio.sblec.receiver.PayloadReceiver;
+import com.nexenio.sblec.sender.PayloadSender;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
@@ -19,12 +24,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -42,6 +50,12 @@ public class AuthenticatorHealthFragment extends Fragment {
     public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
 
     private static final long HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    private static final long HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+
+    protected Sblec sblec;
+    protected int deviceIdHashCode;
+    protected PayloadSender sender;
+    protected PayloadReceiver receiver;
 
     private UUID authenticatorId;
 
@@ -59,6 +73,7 @@ public class AuthenticatorHealthFragment extends Fragment {
      * screen orientation changes).
      */
     public AuthenticatorHealthFragment() {
+
     }
 
     @Override
@@ -74,8 +89,11 @@ public class AuthenticatorHealthFragment extends Fragment {
             Timber.d("Authenticator ID: %s", authenticatorId);
         }
 
-        indicateSblecUnknown();
-        indicateGattUnknown();
+        Context context = getContext();
+        this.sblec = Sblec.getInstance();
+        this.deviceIdHashCode = Sblec.getDeviceIdHashCode(context);
+        this.sender = sblec.getOrCreatePayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
+        this.receiver = sblec.getOrCreatePayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
     }
 
     @Override
@@ -90,19 +108,22 @@ public class AuthenticatorHealthFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
         startHealthMonitoring();
     }
 
     @Override
-    public void onDetach() {
+    public void onStop() {
         stopHealthMonitoring();
-        super.onDetach();
+        super.onStop();
     }
 
     private void startHealthMonitoring() {
         Timber.d("startHealthMonitoring() called");
+
+        indicateSblecUnknown();
+        indicateGattUnknown();
 
         healthMonitorDisposable = Completable.mergeArray(
                 monitorSblecHealth().subscribeOn(Schedulers.io()),
@@ -131,22 +152,75 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorSblecHealth() {
-        return Completable.never();
+        return Observable.interval(1, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .doOnNext(count -> Timber.d("Initiating SBLEC health check # %d", count + 1))
+                .flatMapCompletable(count -> getSblecHealthCheckResult()
+                        .doOnSuccess(this::indicateSblecHealthy)
+                        .doOnError(this::indicateSblecUnhealthy)
+                        .ignoreElement()
+                        .onErrorComplete())
+                .doFinally(this::indicateSblecUnknown);
     }
 
     private Single<HealthCheckResult> getSblecHealthCheckResult() {
-        return Single.error(new Throwable("Not implemented"));
+        return Single.create(emitter -> {
+            Disposable sendDisposable = sendSblecHealthCheckRequest()
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(
+                            () -> Timber.v("Health request sending completed"),
+                            emitter::onError
+                    );
+
+            Disposable receiveDisposable = receiveSblecHealthCheckResponse()
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(
+                            emitter::onSuccess,
+                            emitter::onError
+                    );
+
+            emitter.setDisposable(new CompositeDisposable(sendDisposable, receiveDisposable));
+        });
     }
 
-    private void indicateSblecHealthy() {
+    private Completable sendSblecHealthCheckRequest() {
+        // TODO: 2020-01-17 actually send payload
+        return Completable.never()
+                .timeout(2, TimeUnit.SECONDS)
+                .onErrorResumeNext(throwable -> {
+                    if (throwable instanceof TimeoutException) {
+                        // don't treat the timeout as error,
+                        // we want to stop it with intention
+                        return Completable.complete();
+                    } else {
+                        return Completable.error(throwable);
+                    }
+                });
+    }
+
+    private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
+        // TODO: 2020-01-17 filter for nonce
+        return receiver.receive()
+                .filter(new PayloadIdFilter(HealthCheckResponsePayloadWrapper.ID))
+                .filter(new CompletelyReceivedFilter())
+                .map(HealthCheckResponsePayloadWrapper::new)
+                .filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
+                .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
+                .firstOrError()
+                .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS);
+    }
+
+    private void indicateSblecHealthy(@NonNull HealthCheckResult healthCheckResult) {
+        Timber.d("indicateSblecHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         sblecDescriptionTextView.setText(R.string.monitoring_healthy);
     }
 
-    private void indicateSblecUnhealthy() {
+    private void indicateSblecUnhealthy(@NonNull Throwable throwable) {
+        Timber.w("indicateSblecUnhealthy() called with: throwable = [%s]", throwable);
         sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
     }
 
     private void indicateSblecUnknown() {
+        Timber.d("indicateSblecUnknown() called");
         sblecDescriptionTextView.setText(R.string.monitoring_unknown);
     }
 
@@ -155,22 +229,32 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorGattHealth() {
-        return Completable.never();
+        return Observable.interval(HEALTH_CHECK_INTERVAL / 2, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .doOnNext(count -> Timber.d("Initiating GATT health check # %d", count + 1))
+                .flatMapCompletable(count -> getGattHealthCheckResult()
+                        .doOnSuccess(this::indicateGattHealthy)
+                        .doOnError(this::indicateGattUnhealthy)
+                        .ignoreElement()
+                        .onErrorComplete())
+                .doFinally(this::indicateGattUnknown);
     }
 
     private Single<HealthCheckResult> getGattHealthCheckResult() {
-        return Single.error(new Throwable("Not implemented"));
+        return Single.error(new Throwable("GATT health check not implemented"));
     }
 
-    private void indicateGattHealthy() {
+    private void indicateGattHealthy(@NonNull HealthCheckResult healthCheckResult) {
+        Timber.d("indicateGattHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         gattDescriptionTextView.setText(R.string.monitoring_healthy);
     }
 
-    private void indicateGattUnhealthy() {
+    private void indicateGattUnhealthy(@NonNull Throwable throwable) {
+        Timber.w("indicateGattUnhealthy() called with: throwable = [%s]", throwable);
         gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
     }
 
     private void indicateGattUnknown() {
+        Timber.d("indicateGattUnknown() called");
         gattDescriptionTextView.setText(R.string.monitoring_unknown);
     }
 

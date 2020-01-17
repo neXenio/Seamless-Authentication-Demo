@@ -10,6 +10,14 @@ public class HealthCheckResult {
 
     }
 
+    @Override
+    public String toString() {
+        return "HealthCheckResult{" +
+                "operationalBluetoothChips=" + operationalBluetoothChips +
+                ", activeDevices=" + activeDevices +
+                '}';
+    }
+
     public int getOperationalBluetoothChips() {
         return operationalBluetoothChips;
     }
