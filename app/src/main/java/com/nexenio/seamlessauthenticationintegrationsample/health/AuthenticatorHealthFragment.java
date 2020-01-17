@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.nexenio.sblec.Sblec;
 import com.nexenio.sblec.payload.PayloadIdFilter;
+import com.nexenio.sblec.payload.PayloadWrapper;
 import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
 import com.nexenio.sblec.receiver.PayloadReceiver;
 import com.nexenio.sblec.sender.PayloadSender;
@@ -24,6 +25,7 @@ import com.nexenio.seamlessauthenticationintegrationsample.overview.Authenticato
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -180,7 +182,7 @@ public class AuthenticatorHealthFragment extends Fragment {
                             emitter::onError
                     );
 
-            Disposable receiveDisposable = receiveSblecHealthCheckResponse()
+            Disposable receiveDisposable = receiveSblecHealthCheckResponseHack()
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                             emitter::onSuccess,
@@ -198,8 +200,27 @@ public class AuthenticatorHealthFragment extends Fragment {
                 .toSenderPayload());
     }
 
+    private Single<SenderPayload> createSblecHealthCheckRequestHack() {
+        return Single.defer(() -> (new PayloadWrapper() {
+            @Override
+            public int getId() {
+                return 11;
+            }
+
+            @Override
+            public Completable readFromBuffer(@NonNull ByteBuffer byteBuffer) {
+                return Completable.complete();
+            }
+
+            @Override
+            public Single<ByteBuffer> writeToBuffer() {
+                return Single.just(ByteBuffer.wrap(new byte[]{1, 2, 17, 15}));
+            }
+        }).toSenderPayload());
+    }
+
     private Completable sendSblecHealthCheckRequest() {
-        return createSblecHealthCheckRequest()
+        return createSblecHealthCheckRequestHack()
                 .flatMapCompletable(senderPayload -> sender.send(senderPayload)
                         .timeout(3, TimeUnit.SECONDS)
                         .onErrorResumeNext(throwable -> {
@@ -221,6 +242,15 @@ public class AuthenticatorHealthFragment extends Fragment {
                 .map(HealthCheckResponsePayloadWrapper::new)
                 .filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
                 .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
+                .firstOrError()
+                .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS);
+    }
+
+    private Single<HealthCheckResult> receiveSblecHealthCheckResponseHack() {
+        return receiver.receive()
+                .filter(new PayloadIdFilter(60))
+                .filter(new CompletelyReceivedFilter())
+                .map(receiverPayload -> new HealthCheckResult())
                 .firstOrError()
                 .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS);
     }
