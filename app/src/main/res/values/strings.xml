@@ -21,6 +21,7 @@
     <string name="action_grant_permission">Grant</string>
     <string name="action_authenticate">Authenticate</string>
     <string name="action_authenticate_now">Authenticate Now</string>
+    <string name="action_monitor_health">Monitor Health</string>
 
     <string name="authenticator_name_unknown">Unknown Authenticator</string>
     <string name="authenticator_id_unknown">Unknown UUID</string>

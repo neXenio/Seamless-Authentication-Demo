@@ -4,6 +4,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.button.MaterialButton;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -26,6 +27,7 @@ import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detecti
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
+import com.nexenio.seamlessauthenticationintegrationsample.health.AuthenticatorHealthActivity;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorViewHolder;
 import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView;
@@ -82,6 +84,7 @@ public class AuthenticatorDetailFragment extends Fragment {
     private GateView gateView;
     private TextView authenticationIdsTextView;
     private MaterialButton authenticateButton;
+    private MaterialButton monitorHealthButton;
     private SwitchCompat seamlessAuthenticationSwitch;
     private AppCompatSpinner rangeSpinner;
 
@@ -139,8 +142,10 @@ public class AuthenticatorDetailFragment extends Fragment {
         rangeSpinner = rootView.findViewById(R.id.rangeSpinner);
         authenticationIdsTextView = rootView.findViewById(R.id.authenticationIdsTextView);
         authenticateButton = rootView.findViewById(R.id.authenticateButton);
+        monitorHealthButton = rootView.findViewById(R.id.monitorHealthButton);
 
         authenticateButton.setOnClickListener(v -> authenticate(authenticator));
+        monitorHealthButton.setOnClickListener(v -> monitorHealth(authenticator));
 
         seamlessAuthenticationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             seamlessAuthenticationEnabled = isChecked;
@@ -195,6 +200,13 @@ public class AuthenticatorDetailFragment extends Fragment {
     public void onDetach() {
         stopUpdatingAuthenticator();
         super.onDetach();
+    }
+
+    private void monitorHealth(@NonNull SeamlessAuthenticator authenticator) {
+        Timber.d("monitorHealth() called with: authenticator = [%s]", authenticator);
+        Intent intent = new Intent(getContext(), AuthenticatorHealthActivity.class);
+        intent.putExtra(AuthenticatorDetailFragment.KEY_AUTHENTICATOR_ID, authenticator.getId().blockingGet().toString());
+        getContext().startActivity(intent);
     }
 
     private void anticipateAuthentication(@NonNull SeamlessAuthenticator authenticator) {

@@ -46,11 +46,11 @@ public class AuthenticatorAdapter extends RecyclerView.Adapter<AuthenticatorView
         return view -> {
             SeamlessAuthenticator authenticator = (SeamlessAuthenticator) view.getTag();
             if (useDetailFragment) {
-                //showInDetailFragment(authenticator);
-                showInHealthFragment(authenticator);
+                showInDetailFragment(authenticator);
+                //showInHealthFragment(authenticator);
             } else {
-                //showInDetailActivity(view.getContext(), authenticator);
-                showInHealthActivity(view.getContext(), authenticator);
+                showInDetailActivity(view.getContext(), authenticator);
+                //showInHealthActivity(view.getContext(), authenticator);
             }
         };
     }
