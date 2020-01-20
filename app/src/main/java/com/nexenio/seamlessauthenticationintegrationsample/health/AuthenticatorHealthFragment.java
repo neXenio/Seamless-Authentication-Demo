@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.nexenio.sblec.Sblec;
@@ -67,9 +68,13 @@ public class AuthenticatorHealthFragment extends Fragment {
     private SeamlessAuthenticator authenticator;
 
     private CollapsingToolbarLayout appBarLayout;
+
+    private RelativeLayout sblecContainer;
     private TextView sblecDescriptionTextView;
-    private TextView gattDescriptionTextView;
     private ImageView sblecIconImageView;
+
+    private RelativeLayout gattContainer;
+    private TextView gattDescriptionTextView;
     private ImageView gattIconImageView;
 
     /**
@@ -105,9 +110,13 @@ public class AuthenticatorHealthFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.authenticator_health, container, false);
 
         appBarLayout = getActivity().findViewById(R.id.toolbar_layout);
+
+        sblecContainer = rootView.findViewById(R.id.sblecContainer);
         sblecDescriptionTextView = rootView.findViewById(R.id.sblecDescription);
-        gattDescriptionTextView = rootView.findViewById(R.id.gattDescription);
         sblecIconImageView = rootView.findViewById(R.id.sblecIcon);
+
+        gattContainer = rootView.findViewById(R.id.gattContainer);
+        gattDescriptionTextView = rootView.findViewById(R.id.gattDescription);
         gattIconImageView = rootView.findViewById(R.id.gattIcon);
 
         return rootView;
@@ -235,18 +244,21 @@ public class AuthenticatorHealthFragment extends Fragment {
         Timber.d("indicateSblecHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         sblecDescriptionTextView.setText(R.string.monitoring_healthy);
         sblecIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
+        sblecContainer.setBackgroundResource(R.color.monitoring_healthy);
     }
 
     private void indicateSblecUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateSblecUnhealthy() called with: throwable = [%s]", throwable);
         sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
         sblecIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
+        sblecContainer.setBackgroundResource(R.color.monitoring_unhealthy);
     }
 
     private void indicateSblecUnknown() {
         Timber.d("indicateSblecUnknown() called");
         sblecDescriptionTextView.setText(R.string.monitoring_unknown);
         sblecIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
+        sblecContainer.setBackgroundResource(R.color.monitoring_unknown);
     }
 
     /*
@@ -254,6 +266,12 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorGattHealth() {
+        // TODO: 2020-01-20 replace with monitorGattHealthForReal once implemented
+        return Completable.never()
+                .doOnSubscribe(disposable -> indicateGattUnknown());
+    }
+
+    private Completable monitorGattHealthForReal() {
         return Observable.interval(HEALTH_CHECK_TIMEOUT, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(count -> {
                     Timber.d("Initiating GATT health check # %d", count + 1);
@@ -281,18 +299,21 @@ public class AuthenticatorHealthFragment extends Fragment {
         Timber.d("indicateGattHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         gattDescriptionTextView.setText(R.string.monitoring_healthy);
         gattIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
+        gattContainer.setBackgroundResource(R.color.monitoring_healthy);
     }
 
     private void indicateGattUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateGattUnhealthy() called with: throwable = [%s]", throwable);
         gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
         gattIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
+        gattContainer.setBackgroundResource(R.color.monitoring_unhealthy);
     }
 
     private void indicateGattUnknown() {
         Timber.d("indicateGattUnknown() called");
         gattDescriptionTextView.setText(R.string.monitoring_unknown);
         gattIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
+        gattContainer.setBackgroundResource(R.color.monitoring_unknown);
     }
 
 }

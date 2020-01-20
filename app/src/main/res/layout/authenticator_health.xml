@@ -12,7 +12,8 @@
             android:id="@+id/sblecContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:background="@color/monitoring_unknown">
 
         <TextView
                 android:id="@+id/sblecTitle"
@@ -27,7 +28,7 @@
                 style="@style/AppTheme.CardView.ContentTextView"
                 android:layout_below="@id/sblecTitle"
                 android:layout_centerHorizontal="true"
-                android:text="@string/status_unknown"
+                android:text="@string/monitoring_unknown"
                 android:textAlignment="center"
                 android:textColor="@android:color/white" />
 
@@ -46,7 +47,8 @@
             android:id="@+id/gattContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:background="@color/monitoring_unknown">
 
         <TextView
                 android:id="@+id/gattTitle"
@@ -61,7 +63,7 @@
                 style="@style/AppTheme.CardView.ContentTextView"
                 android:layout_below="@id/gattTitle"
                 android:layout_centerHorizontal="true"
-                android:text="@string/status_unknown"
+                android:text="@string/monitoring_unknown"
                 android:textAlignment="center"
                 android:textColor="@android:color/white" />
 
