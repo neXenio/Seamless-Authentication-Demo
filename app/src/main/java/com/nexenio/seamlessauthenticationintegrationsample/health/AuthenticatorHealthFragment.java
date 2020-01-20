@@ -2,6 +2,7 @@ package com.nexenio.seamlessauthenticationintegrationsample.health;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,7 +25,11 @@ import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
+import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -54,6 +59,8 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     private static final long HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
     private static final long HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+
+    protected SampleApplication application;
 
     protected Sblec sblec;
     protected int deviceIdHashCode;
@@ -99,6 +106,7 @@ public class AuthenticatorHealthFragment extends Fragment {
         }
 
         Context context = getContext();
+
         this.sblec = Sblec.getInstance();
         this.deviceIdHashCode = Sblec.getDeviceIdHashCode(context);
         this.sender = sblec.getOrCreatePayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
@@ -125,6 +133,7 @@ public class AuthenticatorHealthFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        application = (SampleApplication) getActivity().getApplication();
         startHealthMonitoring();
     }
 
@@ -245,6 +254,7 @@ public class AuthenticatorHealthFragment extends Fragment {
         sblecDescriptionTextView.setText(R.string.monitoring_healthy);
         sblecIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
         sblecContainer.setBackgroundResource(R.color.monitoring_healthy);
+        trackHealth("SBLEC", true);
     }
 
     private void indicateSblecUnhealthy(@NonNull Throwable throwable) {
@@ -252,6 +262,7 @@ public class AuthenticatorHealthFragment extends Fragment {
         sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
         sblecIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
         sblecContainer.setBackgroundResource(R.color.monitoring_unhealthy);
+        trackHealth("SBLEC", false);
     }
 
     private void indicateSblecUnknown() {
@@ -300,6 +311,7 @@ public class AuthenticatorHealthFragment extends Fragment {
         gattDescriptionTextView.setText(R.string.monitoring_healthy);
         gattIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
         gattContainer.setBackgroundResource(R.color.monitoring_healthy);
+        trackHealth("GATT", true);
     }
 
     private void indicateGattUnhealthy(@NonNull Throwable throwable) {
@@ -307,6 +319,7 @@ public class AuthenticatorHealthFragment extends Fragment {
         gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
         gattIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
         gattContainer.setBackgroundResource(R.color.monitoring_unhealthy);
+        trackHealth("GATT", false);
     }
 
     private void indicateGattUnknown() {
@@ -314,6 +327,45 @@ public class AuthenticatorHealthFragment extends Fragment {
         gattDescriptionTextView.setText(R.string.monitoring_unknown);
         gattIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
         gattContainer.setBackgroundResource(R.color.monitoring_unknown);
+    }
+
+    @SuppressLint("CheckResult")
+    private void trackHealth(@NonNull String protocol, boolean healthy) {
+        Completable.fromAction(
+                () -> {
+                    URL url = new URL("https://feedbackseamless.nexenio.com/api/feedback");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                    connection.setDoOutput(true);
+                    connection.setDoInput(true);
+
+                    String id = protocol.toLowerCase() + "-" + (healthy ? "healthy" : "unhealthy") + "-" + authenticatorId;
+                    String name = healthy ? "Healthy" : "Unhealthy";
+                    String path = "seamless-gate/" + id;
+
+                    JSONObject selectedOption = new JSONObject();
+                    selectedOption.put("id", id);
+                    selectedOption.put("name", name);
+                    selectedOption.put("path", path);
+
+                    JSONObject feedback = new JSONObject();
+                    feedback.put("sessionId", application.getDeviceId());
+                    feedback.put("selectedOption", selectedOption);
+
+                    DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+                    os.writeBytes(feedback.toString());
+
+                    os.flush();
+                    os.close();
+
+                    connection.disconnect();
+                })
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        () -> Timber.v("%s health tracked", protocol),
+                        throwable -> Timber.w(throwable, "Unable to track %s health", protocol)
+                );
     }
 
 }
