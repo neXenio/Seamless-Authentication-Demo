@@ -39,6 +39,8 @@
     <string name="description_authentication_ids">This app uses a randomly generated user ID and device ID for demonstration purposes.\n\nUser ID:\n%1$s\n\nDevice ID:\n%2$s</string>
     <string name="label_seamless_authentication">Seamless authentication</string>
     <string name="label_authentication_range">Authentication range</string>
+    <string name="status_authentication_succeeded">Authentication Succeeded</string>
+    <string name="status_authentication_failed">Authentication Failed</string>
 
     <string name="caption_visualization">Visualization</string>
 

@@ -4,12 +4,16 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.button.MaterialButton;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
@@ -105,9 +109,6 @@ public class AuthenticatorDetailFragment extends Fragment {
 
         authenticationProperties = new AuthenticationProperties() {
 
-            private UUID userId = UUID.randomUUID();
-            private UUID deviceId = UUID.randomUUID();
-
             @Override
             public Single<String> getUserName() {
                 return Single.just("Demo User");
@@ -115,12 +116,12 @@ public class AuthenticatorDetailFragment extends Fragment {
 
             @Override
             public Single<UUID> getUserId() {
-                return Single.just(userId);
+                return Single.just(application.getUserId());
             }
 
             @Override
             public Single<UUID> getDeviceId() {
-                return Single.just(deviceId);
+                return Single.just(application.getDeviceId());
             }
         };
     }
@@ -215,10 +216,20 @@ public class AuthenticatorDetailFragment extends Fragment {
             return;
         }
         authenticationDisposable = authenticator.authenticate(authenticationProperties)
+                .doOnSubscribe(disposable -> vibrate(200))
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        () -> Timber.i("Authentication succeeded"),
-                        throwable -> Timber.w(throwable, "Authentication failed")
+                        () -> {
+                            Timber.i("Authentication succeeded");
+                            Toast.makeText(getContext(), R.string.status_authentication_succeeded, Toast.LENGTH_SHORT).show();
+                            vibrate(200);
+                        },
+                        throwable -> {
+                            Timber.w(throwable, "Authentication failed");
+                            Toast.makeText(getContext(), R.string.status_authentication_failed, Toast.LENGTH_SHORT).show();
+                            vibrate(400);
+                        }
                 );
     }
 
@@ -291,6 +302,15 @@ public class AuthenticatorDetailFragment extends Fragment {
             beaconDescriptionTextView.setText(beaconDescription.toString());
 
             gateView.onAuthenticatorUpdated(gate);
+        }
+    }
+
+    private void vibrate(long duration) {
+        Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(duration);
         }
     }
 

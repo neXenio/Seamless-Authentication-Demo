@@ -181,7 +181,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     private void checkPermissions() {
         Timber.d("checkPermissions() called");
         int bluetoothPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
-        int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        int locationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (bluetoothPermission != PackageManager.PERMISSION_GRANTED || locationPermission != PackageManager.PERMISSION_GRANTED) {
             showMissingPermissionError();
         }
@@ -198,7 +198,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @SuppressLint("CheckResult")
     private void requestMissingPermissions() {
         Timber.d("requestMissingPermissions() called");
-        rxPermissions.request(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_COARSE_LOCATION)
+        rxPermissions.request(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION)
                 .subscribe(permissionsGranted -> {
                     if (permissionsGranted) {
                         startSeamlessAuthenticatorDetection();
