@@ -3,6 +3,7 @@
 
     <string name="title_authenticator_list">Authenticators</string>
     <string name="title_authenticator_detail">Authenticator Detail</string>
+    <string name="title_authenticator_health">Authenticator Health</string>
 
     <string name="unknown">unknown</string>
 
@@ -20,6 +21,7 @@
     <string name="action_grant_permission">Grant</string>
     <string name="action_authenticate">Authenticate</string>
     <string name="action_authenticate_now">Authenticate Now</string>
+    <string name="action_monitor_health">Monitor Health</string>
 
     <string name="authenticator_name_unknown">Unknown Authenticator</string>
     <string name="authenticator_id_unknown">Unknown UUID</string>
@@ -64,6 +66,11 @@
     <string name="generic_beacon_description">Type: %1$s\nMAC: %2$s\nTX: %3$s dBm\nCalibrated RSSI: %5$s dBm\nRSSI: %4$s dBm\nDistance: %6$s meters\nInterval: %7$s Hz</string>
     <string name="gateway_detection_beacon_description">Gate Index: %1$s\nGateway Index: %2$s\nDirection: %3$s\nPosition: %4$s</string>
     <string name="gateway_direction_lock_beacon_description">Gate Index: %1$s\nDirection: %2$s</string>
+
+    <string name="monitoring_healthy">Healthy</string>
+    <string name="monitoring_unhealthy">Unhealthy</string>
+    <string name="monitoring_unknown">Unknown</string>
+    <string name="monitoring_checking">Checking…</string>
 
     <string-array name="authentication_ranges">
         <item>50 cm</item>

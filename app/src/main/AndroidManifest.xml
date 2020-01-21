@@ -3,6 +3,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="com.nexenio.seamlessauthenticationintegrationsample">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -32,6 +33,17 @@
                 android:label="@string/title_authenticator_detail"
                 android:parentActivityName=".overview.AuthenticatorListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />
+        </activity>
+
+        <activity
+                android:name=".health.AuthenticatorHealthActivity"
+                android:exported="true"
+                android:label="@string/title_authenticator_health"
+                android:parentActivityName=".overview.AuthenticatorListActivity"
+                android:theme="@style/DarkFullscreen">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />

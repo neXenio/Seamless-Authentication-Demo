@@ -76,7 +76,7 @@ public class AuthenticatorListActivity extends SeamlessAuthenticationActivity {
         authenticatorListUpdateDisposable = Flowable.interval(1, TimeUnit.SECONDS)
                 .flatMapSingle(authenticator -> authenticatorDetector.getDetectedAuthenticators().toList())
                 .onErrorReturnItem(Collections.emptyList())
-                .subscribeOn(Schedulers.computation())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::showAuthenticators);
     }

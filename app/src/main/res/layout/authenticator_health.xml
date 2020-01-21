@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:keepScreenOn="true"
+        android:orientation="vertical"
+        tools:context=".detail.AuthenticatorDetailFragment">
+
+    <RelativeLayout
+            android:id="@+id/sblecContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/monitoring_unknown">
+
+        <TextView
+                android:id="@+id/sblecTitle"
+                style="@style/AppTheme.CardView.TitleTextView"
+                android:layout_centerInParent="true"
+                android:text="SBLEC"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
+
+        <TextView
+                android:id="@+id/sblecDescription"
+                style="@style/AppTheme.CardView.ContentTextView"
+                android:layout_below="@id/sblecTitle"
+                android:layout_centerHorizontal="true"
+                android:text="@string/monitoring_unknown"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
+
+        <ImageView
+                android:id="@+id/sblecIcon"
+                android:layout_width="75dip"
+                android:layout_height="75dip"
+                android:layout_above="@id/sblecTitle"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:tint="@android:color/white" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+            android:id="@+id/gattContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/monitoring_unknown">
+
+        <TextView
+                android:id="@+id/gattTitle"
+                style="@style/AppTheme.CardView.TitleTextView"
+                android:layout_centerInParent="true"
+                android:text="GATT"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
+
+        <TextView
+                android:id="@+id/gattDescription"
+                style="@style/AppTheme.CardView.ContentTextView"
+                android:layout_below="@id/gattTitle"
+                android:layout_centerHorizontal="true"
+                android:text="@string/monitoring_unknown"
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
+
+        <ImageView
+                android:id="@+id/gattIcon"
+                android:layout_width="75dip"
+                android:layout_height="75dip"
+                android:layout_above="@id/gattTitle"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:tint="@android:color/white" />
+
+    </RelativeLayout>
+
+</LinearLayout>
