@@ -1,4 +1,4 @@
-package com.nexenio.seamlessauthenticationintegrationsample.health;
+package com.nexenio.seamlessauthenticationintegrationsample.health.gatt;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,6 +16,7 @@ import android.content.Context;
 import android.os.ParcelUuid;
 
 import com.nexenio.sblec.internal.sender.advertiser.AdvertiserException;
+import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
 import java.util.UUID;
 

@@ -22,6 +22,8 @@ import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
+import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.HealthCheckRequestPayloadWrapper;
+import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.HealthCheckResponsePayloadWrapper;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
 
 import org.jetbrains.annotations.NotNull;

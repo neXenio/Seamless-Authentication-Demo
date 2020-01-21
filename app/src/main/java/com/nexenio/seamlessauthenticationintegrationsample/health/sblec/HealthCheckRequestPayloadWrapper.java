@@ -1,4 +1,4 @@
-package com.nexenio.seamlessauthenticationintegrationsample.health;
+package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import com.nexenio.sblec.payload.PayloadWrapper;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
