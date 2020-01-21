@@ -25,7 +25,7 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import timber.log.Timber;
 
-public class HealthCheckGattServer {
+public class GattHealthManager {
 
     private static final UUID HEALTH_SERVICE_UUID = UUID.fromString("ea64c235-6340-4e00-8d6b-3ccd0dbf9b2d");
     private static final UUID OPERATIONAL_CHIPS_UUID = UUID.fromString("c664d698-e3e6-4555-bfac-d44488cbe279");
@@ -34,6 +34,11 @@ public class HealthCheckGattServer {
     private Context context;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
+    private final UUID authenticatorId;
+
+    public GattHealthManager(UUID authenticatorId) {
+        this.authenticatorId = authenticatorId;
+    }
 
     public Completable initialize(@NonNull Context context) {
         return Completable.fromAction(() -> {

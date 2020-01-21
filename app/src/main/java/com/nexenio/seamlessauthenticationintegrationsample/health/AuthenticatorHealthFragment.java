@@ -3,7 +3,6 @@ package com.nexenio.seamlessauthenticationintegrationsample.health;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,18 +11,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.nexenio.sblec.Sblec;
-import com.nexenio.sblec.payload.PayloadIdFilter;
-import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
-import com.nexenio.sblec.receiver.PayloadReceiver;
-import com.nexenio.sblec.sender.PayloadSender;
-import com.nexenio.sblec.sender.SenderPayload;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
-import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.HealthCheckRequestPayloadWrapper;
-import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.HealthCheckResponsePayloadWrapper;
+import com.nexenio.seamlessauthenticationintegrationsample.health.gatt.GattHealthManager;
+import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.SblecHealthManager;
 import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +27,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -42,7 +34,6 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -64,17 +55,15 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     protected SampleApplication application;
 
-    protected Sblec sblec;
-    protected int deviceIdHashCode;
-    protected PayloadSender sender;
-    protected PayloadReceiver receiver;
-
     private UUID authenticatorId;
 
     private SeamlessAuthenticatorDetector authenticatorDetector;
     private Disposable healthMonitorDisposable;
 
     private SeamlessAuthenticator authenticator;
+
+    private SblecHealthManager sblecHealthManager;
+    private GattHealthManager gattHealthManager;
 
     private CollapsingToolbarLayout appBarLayout;
 
@@ -107,12 +96,8 @@ public class AuthenticatorHealthFragment extends Fragment {
             Timber.d("Authenticator ID: %s", authenticatorId);
         }
 
-        Context context = getContext();
-
-        this.sblec = Sblec.getInstance();
-        this.deviceIdHashCode = Sblec.getDeviceIdHashCode(context);
-        this.sender = sblec.getOrCreatePayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
-        this.receiver = sblec.getOrCreatePayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
+        sblecHealthManager = new SblecHealthManager(authenticatorId);
+        gattHealthManager = new GattHealthManager(authenticatorId);
     }
 
     @Override
@@ -178,71 +163,21 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorSblecHealth() {
-        return Observable.interval(1, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+        Completable monitor = Observable.interval(1, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(count -> {
                     Timber.d("Initiating SBLEC health check # %d", count + 1);
                     indicateSblecChecking();
                 })
-                .flatMapCompletable(count -> getSblecHealthCheckResult()
+                .flatMapCompletable(count -> sblecHealthManager.getHealthCheckResult()
+                        .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateSblecHealthy)
                         .doOnError(this::indicateSblecUnhealthy)
                         .ignoreElement()
                         .onErrorComplete())
                 .doFinally(this::indicateSblecUnknown);
-    }
 
-    private Single<HealthCheckResult> getSblecHealthCheckResult() {
-        return Single.create(emitter -> {
-            Disposable sendDisposable = sendSblecHealthCheckRequest()
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(
-                            () -> Timber.v("SBLEC health request sending completed"),
-                            emitter::onError
-                    );
-
-            Disposable receiveDisposable = receiveSblecHealthCheckResponse()
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(
-                            emitter::onSuccess,
-                            emitter::onError
-                    );
-
-            emitter.setDisposable(new CompositeDisposable(sendDisposable, receiveDisposable));
-        });
-    }
-
-    private Single<SenderPayload> createSblecHealthCheckRequest() {
-        return Single.defer(() -> new HealthCheckRequestPayloadWrapper.Builder()
-                .setAuthenticatorId(authenticatorId)
-                .build()
-                .toSenderPayload());
-    }
-
-    private Completable sendSblecHealthCheckRequest() {
-        return createSblecHealthCheckRequest()
-                .flatMapCompletable(senderPayload -> sender.send(senderPayload)
-                        .timeout(3, TimeUnit.SECONDS)
-                        .onErrorResumeNext(throwable -> {
-                            if (throwable instanceof TimeoutException) {
-                                // don't treat the timeout as error,
-                                // we want to stop it with intention
-                                return Completable.complete();
-                            } else {
-                                return Completable.error(throwable);
-                            }
-                        }));
-    }
-
-    private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
-        // TODO: 2020-01-17 filter for nonce
-        return receiver.receive()
-                .filter(new PayloadIdFilter(HealthCheckResponsePayloadWrapper.ID))
-                .filter(new CompletelyReceivedFilter())
-                .map(HealthCheckResponsePayloadWrapper::new)
-                .filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
-                .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
-                .firstOrError()
-                .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS);
+        return sblecHealthManager.initialize(getContext())
+                .andThen(monitor);
     }
 
     private void indicateSblecChecking() {
@@ -285,7 +220,7 @@ public class AuthenticatorHealthFragment extends Fragment {
     }
 
     private Completable monitorGattHealthForReal() {
-        return Observable.interval(HEALTH_CHECK_TIMEOUT, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+        Completable monitor = Observable.interval(HEALTH_CHECK_TIMEOUT, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(count -> {
                     Timber.d("Initiating GATT health check # %d", count + 1);
                     indicateGattChecking();
@@ -296,6 +231,9 @@ public class AuthenticatorHealthFragment extends Fragment {
                         .ignoreElement()
                         .onErrorComplete())
                 .doFinally(this::indicateGattUnknown);
+
+        return gattHealthManager.initialize(getContext())
+                .andThen(monitor);
     }
 
     private Single<HealthCheckResult> getGattHealthCheckResult() {
