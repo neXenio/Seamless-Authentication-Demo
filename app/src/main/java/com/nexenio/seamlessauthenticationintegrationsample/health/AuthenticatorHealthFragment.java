@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.nexenio.sblec.internal.sender.advertiser.AdvertiserException;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
@@ -175,7 +176,13 @@ public class AuthenticatorHealthFragment extends Fragment {
                 .flatMapCompletable(count -> sblecHealthManager.getHealthCheckResult()
                         .timeout(SBLEC_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateSblecHealthy)
-                        .doOnError(this::indicateSblecUnhealthy)
+                        .doOnError(throwable -> {
+                            if (throwable instanceof AdvertiserException) {
+                                indicateSblecUnknown();
+                            } else {
+                                indicateSblecUnhealthy(throwable);
+                            }
+                        })
                         .ignoreElement()
                         .onErrorComplete())
                 .doFinally(this::indicateSblecUnknown);
@@ -226,7 +233,13 @@ public class AuthenticatorHealthFragment extends Fragment {
                 .flatMapCompletable(count -> gattHealthManager.getHealthCheckResult()
                         .timeout(GATT_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateGattHealthy)
-                        .doOnError(this::indicateGattUnhealthy)
+                        .doOnError(throwable -> {
+                            if (throwable instanceof AdvertiserException) {
+                                indicateGattUnknown();
+                            } else {
+                                indicateGattUnhealthy(throwable);
+                            }
+                        })
                         .ignoreElement()
                         .onErrorComplete())
                 .doFinally(this::indicateGattUnknown);
