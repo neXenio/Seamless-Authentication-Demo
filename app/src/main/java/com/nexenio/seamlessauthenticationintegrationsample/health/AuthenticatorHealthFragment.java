@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -50,8 +49,13 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
     public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
 
-    private static final long HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-    private static final long HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    private static final long SBLEC_HEALTH_CHECK_DELAY = TimeUnit.SECONDS.toMillis(1);
+    private static final long SBLEC_HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    private static final long SBLEC_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+
+    private static final long GATT_HEALTH_CHECK_DELAY = SBLEC_HEALTH_CHECK_DELAY + SBLEC_HEALTH_CHECK_TIMEOUT;
+    private static final long GATT_HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    private static final long GATT_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
 
     protected SampleApplication application;
 
@@ -163,13 +167,13 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorSblecHealth() {
-        Completable monitor = Observable.interval(1, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+        Completable monitor = Observable.interval(SBLEC_HEALTH_CHECK_DELAY, SBLEC_HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(count -> {
                     Timber.d("Initiating SBLEC health check # %d", count + 1);
                     indicateSblecChecking();
                 })
                 .flatMapCompletable(count -> sblecHealthManager.getHealthCheckResult()
-                        .timeout(HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
+                        .timeout(SBLEC_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateSblecHealthy)
                         .doOnError(this::indicateSblecUnhealthy)
                         .ignoreElement()
@@ -214,18 +218,13 @@ public class AuthenticatorHealthFragment extends Fragment {
      */
 
     private Completable monitorGattHealth() {
-        // TODO: 2020-01-20 replace with monitorGattHealthForReal once implemented
-        return Completable.never()
-                .doOnSubscribe(disposable -> indicateGattUnknown());
-    }
-
-    private Completable monitorGattHealthForReal() {
-        Completable monitor = Observable.interval(HEALTH_CHECK_TIMEOUT, HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+        Completable monitor = Observable.interval(GATT_HEALTH_CHECK_DELAY, GATT_HEALTH_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(count -> {
                     Timber.d("Initiating GATT health check # %d", count + 1);
                     indicateGattChecking();
                 })
-                .flatMapCompletable(count -> getGattHealthCheckResult()
+                .flatMapCompletable(count -> gattHealthManager.getHealthCheckResult()
+                        .timeout(GATT_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateGattHealthy)
                         .doOnError(this::indicateGattUnhealthy)
                         .ignoreElement()
@@ -234,10 +233,6 @@ public class AuthenticatorHealthFragment extends Fragment {
 
         return gattHealthManager.initialize(getContext())
                 .andThen(monitor);
-    }
-
-    private Single<HealthCheckResult> getGattHealthCheckResult() {
-        return Single.error(new Throwable("GATT health check not implemented"));
     }
 
     private void indicateGattChecking() {

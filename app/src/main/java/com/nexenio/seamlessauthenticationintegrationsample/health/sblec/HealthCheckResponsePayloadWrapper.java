@@ -20,13 +20,13 @@ public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
 
     private int deviceIdHashcode;
 
-    private final HealthCheckResult healthCheckResult;
+    private HealthCheckResult healthCheckResult;
 
     private int nonce;
 
     public HealthCheckResponsePayloadWrapper(@NonNull ReceiverPayload receiverPayload) {
         super(receiverPayload);
-        healthCheckResult = new HealthCheckResult();
+
     }
 
     @Override
@@ -36,6 +36,7 @@ public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
 
             deviceIdHashcode = byteBuffer.getShort();
 
+            healthCheckResult = new HealthCheckResult();
             healthCheckResult.setOperationalBluetoothChips(byteBuffer.get());
             healthCheckResult.setActiveDevices(byteBuffer.get());
 

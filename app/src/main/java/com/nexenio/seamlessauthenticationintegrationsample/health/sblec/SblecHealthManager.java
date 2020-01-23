@@ -2,6 +2,7 @@ package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import android.content.Context;
 
+import com.nexenio.sblec.PerformanceModes;
 import com.nexenio.sblec.Sblec;
 import com.nexenio.sblec.payload.PayloadIdFilter;
 import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
@@ -24,12 +25,12 @@ import timber.log.Timber;
 
 public class SblecHealthManager {
 
+    private final UUID authenticatorId;
+
     private Sblec sblec;
     private int deviceIdHashCode;
     private PayloadSender sender;
     private PayloadReceiver receiver;
-
-    private final UUID authenticatorId;
 
     public SblecHealthManager(UUID authenticatorId) {
         this.authenticatorId = authenticatorId;
@@ -38,22 +39,30 @@ public class SblecHealthManager {
     public Completable initialize(@NonNull Context context) {
         return Completable.fromAction(() -> {
             sblec = Sblec.getInstance();
-            deviceIdHashCode = Sblec.getDeviceIdHashCode(context);
-            sender = sblec.getOrCreatePayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
-            receiver = sblec.getOrCreatePayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
-        });
+            deviceIdHashCode = (short) Sblec.getDeviceIdHashCode(context);
+            sender = sblec.createPayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
+            receiver = sblec.createPayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
+        }).andThen(Completable.defer(() -> Completable.mergeArray(
+                sender.setPerformanceMode(PerformanceModes.LOW_LATENCY),
+                receiver.setPerformanceMode(PerformanceModes.LOW_LATENCY)
+        )));
     }
 
     public Single<HealthCheckResult> getHealthCheckResult() {
         return Single.create(emitter -> {
             Disposable sendDisposable = sendSblecHealthCheckRequest()
+                    .doOnSubscribe(disposable -> Timber.d("SBLEC health request sending started"))
+                    .doFinally(() -> Timber.d("SBLEC health request sending stopped"))
                     .subscribeOn(Schedulers.io())
                     .subscribe(
-                            () -> Timber.v("SBLEC health request sending completed"),
+                            () -> {
+                            },
                             emitter::onError
                     );
 
             Disposable receiveDisposable = receiveSblecHealthCheckResponse()
+                    .doOnSubscribe(disposable -> Timber.d("SBLEC health request receiving started"))
+                    .doFinally(() -> Timber.d("SBLEC health request receiving stopped"))
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                             emitter::onSuccess,
@@ -87,12 +96,15 @@ public class SblecHealthManager {
     }
 
     private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
-        // TODO: 2020-01-17 filter for nonce
+        // TODO: 2020-01-22 filter for own device ID hashcode
+        // TODO: 2020-01-17 filter for expected nonce
         return receiver.receive()
                 .filter(new PayloadIdFilter(HealthCheckResponsePayloadWrapper.ID))
                 .filter(new CompletelyReceivedFilter())
+                .doOnNext(receiverPayload -> Timber.v("Received health check response: %s", receiverPayload))
                 .map(HealthCheckResponsePayloadWrapper::new)
-                .filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
+                .doOnNext(healthCheckResponsePayloadWrapper -> Timber.i("Received health check response: %s", healthCheckResponsePayloadWrapper))
+                //.filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
                 .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
                 .firstOrError();
     }
