@@ -31,6 +31,7 @@ public class SblecHealthManager {
     private int deviceIdHashCode;
     private PayloadSender sender;
     private PayloadReceiver receiver;
+    private int nonce;
 
     public SblecHealthManager(UUID authenticatorId) {
         this.authenticatorId = authenticatorId;
@@ -74,10 +75,15 @@ public class SblecHealthManager {
     }
 
     private Single<SenderPayload> createSblecHealthCheckRequest() {
-        return Single.defer(() -> new HealthCheckRequestPayloadWrapper.Builder()
-                .setAuthenticatorId(authenticatorId)
-                .build()
-                .toSenderPayload());
+        return Single.defer(() -> {
+            HealthCheckRequestPayloadWrapper payloadWrapper = new HealthCheckRequestPayloadWrapper.Builder()
+                    .setAuthenticatorId(authenticatorId)
+                    .build();
+
+            this.nonce = payloadWrapper.getNonce();
+
+            return payloadWrapper.toSenderPayload();
+        });
     }
 
     private Completable sendSblecHealthCheckRequest() {
@@ -97,7 +103,6 @@ public class SblecHealthManager {
 
     private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
         // TODO: 2020-01-22 filter for own device ID hashcode
-        // TODO: 2020-01-17 filter for expected nonce
         return receiver.receive()
                 .filter(new PayloadIdFilter(HealthCheckResponsePayloadWrapper.ID))
                 .filter(new CompletelyReceivedFilter())
@@ -105,6 +110,7 @@ public class SblecHealthManager {
                 .map(HealthCheckResponsePayloadWrapper::new)
                 .doOnNext(healthCheckResponsePayloadWrapper -> Timber.i("Received health check response: %s", healthCheckResponsePayloadWrapper))
                 //.filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
+                .filter(healthCheckResponsePayloadWrapper -> healthCheckResponsePayloadWrapper.getNonce() == nonce)
                 .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
                 .firstOrError();
     }
