@@ -75,10 +75,14 @@ public class AuthenticatorHealthFragment extends Fragment {
     private RelativeLayout sblecContainer;
     private TextView sblecDescriptionTextView;
     private ImageView sblecIconImageView;
+    private TextView sblecActiveDevicesTextView;
+    private TextView sblecOperationalChipsTextView;
 
     private RelativeLayout gattContainer;
     private TextView gattDescriptionTextView;
     private ImageView gattIconImageView;
+    private TextView gattActiveDevicesTextView;
+    private TextView gattOperationalChipsTextView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
@@ -114,10 +118,14 @@ public class AuthenticatorHealthFragment extends Fragment {
         sblecContainer = rootView.findViewById(R.id.sblecContainer);
         sblecDescriptionTextView = rootView.findViewById(R.id.sblecDescription);
         sblecIconImageView = rootView.findViewById(R.id.sblecIcon);
+        sblecActiveDevicesTextView = rootView.findViewById(R.id.sblecActiveDevices);
+        sblecOperationalChipsTextView = rootView.findViewById(R.id.sblecOperationalChips);
 
         gattContainer = rootView.findViewById(R.id.gattContainer);
         gattDescriptionTextView = rootView.findViewById(R.id.gattDescription);
         gattIconImageView = rootView.findViewById(R.id.gattIcon);
+        gattActiveDevicesTextView = rootView.findViewById(R.id.gattActiveDevices);
+        gattOperationalChipsTextView = rootView.findViewById(R.id.gattOperationalChips);
 
         return rootView;
     }
@@ -195,30 +203,36 @@ public class AuthenticatorHealthFragment extends Fragment {
     private void indicateSblecChecking() {
         Timber.d("indicateSblecChecking() called");
         sblecDescriptionTextView.setText(R.string.monitoring_checking);
-        sblecIconImageView.setImageResource(R.drawable.ic_autorenew_black_24dp);
+        sblecIconImageView.setImageResource(R.drawable.detection_start);
     }
 
     private void indicateSblecHealthy(@NonNull HealthCheckResult healthCheckResult) {
         Timber.d("indicateSblecHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         sblecDescriptionTextView.setText(R.string.monitoring_healthy);
-        sblecIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
+        sblecIconImageView.setImageResource(R.drawable.monitoring_healthy);
         sblecContainer.setBackgroundResource(R.color.monitoring_healthy);
+        sblecActiveDevicesTextView.setText(String.valueOf(healthCheckResult.getActiveDevices()));
+        sblecOperationalChipsTextView.setText(String.valueOf(healthCheckResult.getOperationalBluetoothChips()));
         trackHealth("SBLEC", true);
     }
 
     private void indicateSblecUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateSblecUnhealthy() called with: throwable = [%s]", throwable);
         sblecDescriptionTextView.setText(R.string.monitoring_unhealthy);
-        sblecIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
+        sblecIconImageView.setImageResource(R.drawable.monitoring_unhealthy);
         sblecContainer.setBackgroundResource(R.color.monitoring_unhealthy);
+        sblecActiveDevicesTextView.setText(R.string.monitoring_count_unknown);
+        sblecOperationalChipsTextView.setText(R.string.monitoring_count_unknown);
         trackHealth("SBLEC", false);
     }
 
     private void indicateSblecUnknown() {
         Timber.d("indicateSblecUnknown() called");
         sblecDescriptionTextView.setText(R.string.monitoring_unknown);
-        sblecIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
+        sblecIconImageView.setImageResource(R.drawable.monitoring_unknown);
         sblecContainer.setBackgroundResource(R.color.monitoring_unknown);
+        sblecActiveDevicesTextView.setText(R.string.monitoring_count_unknown);
+        sblecOperationalChipsTextView.setText(R.string.monitoring_count_unknown);
     }
 
     /*
@@ -253,30 +267,36 @@ public class AuthenticatorHealthFragment extends Fragment {
     private void indicateGattChecking() {
         Timber.d("indicateGattChecking() called");
         gattDescriptionTextView.setText(R.string.monitoring_checking);
-        gattIconImageView.setImageResource(R.drawable.ic_autorenew_black_24dp);
+        gattIconImageView.setImageResource(R.drawable.detection_start);
     }
 
     private void indicateGattHealthy(@NonNull HealthCheckResult healthCheckResult) {
         Timber.d("indicateGattHealthy() called with: healthCheckResult = [%s]", healthCheckResult);
         gattDescriptionTextView.setText(R.string.monitoring_healthy);
-        gattIconImageView.setImageResource(R.drawable.ic_check_black_24dp);
+        gattIconImageView.setImageResource(R.drawable.monitoring_healthy);
         gattContainer.setBackgroundResource(R.color.monitoring_healthy);
+        gattActiveDevicesTextView.setText(String.valueOf(healthCheckResult.getActiveDevices()));
+        gattOperationalChipsTextView.setText(String.valueOf(healthCheckResult.getOperationalBluetoothChips()));
         trackHealth("GATT", true);
     }
 
     private void indicateGattUnhealthy(@NonNull Throwable throwable) {
         Timber.w("indicateGattUnhealthy() called with: throwable = [%s]", throwable);
         gattDescriptionTextView.setText(R.string.monitoring_unhealthy);
-        gattIconImageView.setImageResource(R.drawable.ic_close_black_24dp);
+        gattIconImageView.setImageResource(R.drawable.monitoring_unhealthy);
         gattContainer.setBackgroundResource(R.color.monitoring_unhealthy);
+        gattActiveDevicesTextView.setText(R.string.monitoring_count_unknown);
+        gattOperationalChipsTextView.setText(R.string.monitoring_count_unknown);
         trackHealth("GATT", false);
     }
 
     private void indicateGattUnknown() {
         Timber.d("indicateGattUnknown() called");
         gattDescriptionTextView.setText(R.string.monitoring_unknown);
-        gattIconImageView.setImageResource(R.drawable.ic_sync_problem_black_24dp);
+        gattIconImageView.setImageResource(R.drawable.monitoring_unknown);
         gattContainer.setBackgroundResource(R.color.monitoring_unknown);
+        gattActiveDevicesTextView.setText(R.string.monitoring_count_unknown);
+        gattOperationalChipsTextView.setText(R.string.monitoring_count_unknown);
     }
 
     @SuppressLint("CheckResult")

@@ -38,8 +38,75 @@
                 android:layout_height="75dip"
                 android:layout_above="@id/sblecTitle"
                 android:layout_centerHorizontal="true"
-                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:src="@drawable/monitoring_unknown"
                 android:tint="@android:color/white" />
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/sblecDescription"
+                android:layout_centerHorizontal="true"
+                android:orientation="horizontal">
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/sblecActiveDevicesIcon"
+                        android:layout_width="20dip"
+                        android:layout_height="20dip"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/active_devices"
+                        android:tint="@android:color/white" />
+
+                <TextView
+                        android:id="@+id/sblecActiveDevices"
+                        style="@style/AppTheme.CardView.ContentTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@id/sblecActiveDevicesIcon"
+                        android:text="@string/monitoring_count_unknown"
+                        android:textAlignment="viewStart"
+                        android:textColor="@android:color/white" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/sblecOperationalChipsIcon"
+                        android:layout_width="20dip"
+                        android:layout_height="20dip"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/operational_bt_chips"
+                        android:tint="@android:color/white" />
+
+                <TextView
+                        android:id="@+id/sblecOperationalChips"
+                        style="@style/AppTheme.CardView.ContentTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@id/sblecOperationalChipsIcon"
+                        android:text="@string/monitoring_count_unknown"
+                        android:textAlignment="viewStart"
+                        android:textColor="@android:color/white" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
 
     </RelativeLayout>
 
@@ -73,8 +140,75 @@
                 android:layout_height="75dip"
                 android:layout_above="@id/gattTitle"
                 android:layout_centerHorizontal="true"
-                android:src="@drawable/ic_sync_problem_black_24dp"
+                android:src="@drawable/monitoring_unknown"
                 android:tint="@android:color/white" />
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/gattDescription"
+                android:layout_centerHorizontal="true"
+                android:orientation="horizontal">
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/gattActiveDevicesIcon"
+                        android:layout_width="20dip"
+                        android:layout_height="20dip"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/active_devices"
+                        android:tint="@android:color/white" />
+
+                <TextView
+                        android:id="@+id/gattActiveDevices"
+                        style="@style/AppTheme.CardView.ContentTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@id/gattActiveDevicesIcon"
+                        android:text="@string/monitoring_count_unknown"
+                        android:textAlignment="viewStart"
+                        android:textColor="@android:color/white" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minWidth="100dp"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/gattOperationalChipsIcon"
+                        android:layout_width="20dip"
+                        android:layout_height="20dip"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/operational_bt_chips"
+                        android:tint="@android:color/white" />
+
+                <TextView
+                        android:id="@+id/gattOperationalChips"
+                        style="@style/AppTheme.CardView.ContentTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toRightOf="@id/gattOperationalChipsIcon"
+                        android:text="@string/monitoring_count_unknown"
+                        android:textAlignment="viewStart"
+                        android:textColor="@android:color/white" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
 
     </RelativeLayout>
 

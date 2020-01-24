@@ -144,7 +144,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         Timber.d("indicateDetectionStarted() called");
         progressBarFrameLayout.setVisibility(View.VISIBLE);
         fab.setOnClickListener(view -> stopSeamlessAuthenticatorDetection());
-        fab.setImageResource(R.drawable.ic_pause_black_24dp);
+        fab.setImageResource(R.drawable.detection_pause);
 
         errorSnackbar.dismiss();
         statusSnackbar.dismiss();
@@ -157,7 +157,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         Timber.d("indicateDetectionStopped() called");
         progressBarFrameLayout.setVisibility(View.GONE);
         fab.setOnClickListener(view -> startSeamlessAuthenticatorDetection());
-        fab.setImageResource(R.drawable.ic_autorenew_black_24dp);
+        fab.setImageResource(R.drawable.detection_start);
 
         statusSnackbar.dismiss();
         if (errorSnackbar.getView().getVisibility() != View.VISIBLE) {
