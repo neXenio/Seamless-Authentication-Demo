@@ -51,12 +51,12 @@ public class AuthenticatorHealthFragment extends Fragment {
     public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
 
     private static final long SBLEC_HEALTH_CHECK_DELAY = TimeUnit.SECONDS.toMillis(1);
-    private static final long SBLEC_HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    private static final long SBLEC_HEALTH_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(1);
     private static final long SBLEC_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
 
-    private static final long GATT_HEALTH_CHECK_DELAY = SBLEC_HEALTH_CHECK_DELAY + SBLEC_HEALTH_CHECK_TIMEOUT;
-    private static final long GATT_HEALTH_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-    private static final long GATT_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    private static final long GATT_HEALTH_CHECK_DELAY = SBLEC_HEALTH_CHECK_DELAY + (SBLEC_HEALTH_CHECK_INTERVAL / 2);
+    private static final long GATT_HEALTH_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(1);
+    private static final long GATT_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
 
     protected SampleApplication application;
 
@@ -177,6 +177,7 @@ public class AuthenticatorHealthFragment extends Fragment {
                         .timeout(SBLEC_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateSblecHealthy)
                         .doOnError(throwable -> {
+                            Timber.w(throwable, "SBLEC health check failed");
                             if (throwable instanceof AdvertiserException) {
                                 indicateSblecUnknown();
                             } else {
@@ -234,6 +235,7 @@ public class AuthenticatorHealthFragment extends Fragment {
                         .timeout(GATT_HEALTH_CHECK_TIMEOUT, TimeUnit.MILLISECONDS)
                         .doOnSuccess(this::indicateGattHealthy)
                         .doOnError(throwable -> {
+                            Timber.w(throwable, "GATT health check failed");
                             if (throwable instanceof AdvertiserException) {
                                 indicateGattUnknown();
                             } else {
