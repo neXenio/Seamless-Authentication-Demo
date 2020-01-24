@@ -298,7 +298,7 @@ public class AuthenticatorHealthFragment extends Fragment {
                     selectedOption.put("path", path);
 
                     JSONObject feedback = new JSONObject();
-                    feedback.put("sessionId", application.getDeviceId());
+                    feedback.put("sessionId", UUID.randomUUID());
                     feedback.put("selectedOption", selectedOption);
 
                     DataOutputStream os = new DataOutputStream(connection.getOutputStream());
@@ -307,9 +307,11 @@ public class AuthenticatorHealthFragment extends Fragment {
                     os.flush();
                     os.close();
 
+                    Timber.v("Health tracking response: %s", connection.getResponseMessage());
                     connection.disconnect();
                 })
                 .subscribeOn(Schedulers.io())
+                .timeout(5, TimeUnit.SECONDS)
                 .subscribe(
                         () -> Timber.v("%s health tracked", protocol),
                         throwable -> Timber.w(throwable, "Unable to track %s health", protocol)
