@@ -150,8 +150,12 @@ public class AuthenticatorHealthFragment extends Fragment {
         indicateGattUnknown();
 
         healthMonitorDisposable = Completable.mergeArray(
-                monitorSblecHealth().subscribeOn(Schedulers.io()),
-                monitorGattHealth().subscribeOn(Schedulers.io())
+                monitorSblecHealth()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread()),
+                monitorGattHealth()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
         ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally(() -> {

@@ -1,35 +1,26 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.gatt;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattServer;
-import android.bluetooth.BluetoothGattServerCallback;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
-import android.os.ParcelUuid;
 
-import com.nexenio.sblec.internal.sender.advertiser.AdvertiserException;
+import com.nexenio.rxandroidbleserver.RxBleServer;
+import com.nexenio.rxandroidbleserver.RxBleServerProvider;
+import com.nexenio.rxandroidbleserver.client.RxBleClient;
+import com.nexenio.rxandroidbleserver.service.RxBleService;
+import com.nexenio.rxandroidbleserver.service.ServiceBuilder;
+import com.nexenio.rxandroidbleserver.service.characteristic.CharacteristicBuilder;
+import com.nexenio.rxandroidbleserver.service.characteristic.RxBleCharacteristic;
+import com.nexenio.rxandroidbleserver.service.characteristic.descriptor.CharacteristicUserDescription;
+import com.nexenio.rxandroidbleserver.service.value.RxBleValue;
+import com.nexenio.rxandroidbleserver.service.value.provider.RxBleClientValueProvider;
 import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.UUID;
 
 import androidx.annotation.NonNull;
 import io.reactivex.Completable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -41,210 +32,115 @@ public class GattHealthManager {
     private static final UUID OPERATIONAL_CHIPS_UUID = UUID.fromString("c664d698-e3e6-4555-bfac-d44488cbe279");
     private static final UUID ACTIVE_DEVICES_UUID = UUID.fromString("09442147-5ec0-4341-a382-58f43a6f13e5");
 
-    private static final UUID USER_DESCRIPTION_UUID = UUID.fromString("00002901-0000-1000-8000-00805f9b34fb");
-
     private final UUID authenticatorId;
 
-    private Context context;
-    private BluetoothManager bluetoothManager;
-    private BluetoothAdapter bluetoothAdapter;
-    private BluetoothGattServer gattServer;
+    private RxBleServer server;
 
-    private SingleEmitter<HealthCheckResult> healthCheckResultEmitter;
+    private RxBleCharacteristic authenticatorIdCharacteristic;
+    private RxBleCharacteristic operationalChipsCharacteristic;
+    private RxBleCharacteristic activeDevicesCharacteristic;
 
     public GattHealthManager(UUID authenticatorId) {
         this.authenticatorId = authenticatorId;
     }
 
     public Completable initialize(@NonNull Context context) {
-        return Completable.fromAction(() -> {
-            this.context = context;
+        return initializeServer(context);
+    }
 
-            bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-            if (bluetoothManager == null) {
-                throw new IllegalStateException("No bluetooth manager available");
-            }
+    private Completable initializeServer(@NonNull Context context) {
+        Single<RxBleService> createService = Single.fromCallable(() -> {
+            byte[] encodedAuthenticatorId = authenticatorId.toString().getBytes(StandardCharsets.UTF_8);
 
-            bluetoothAdapter = bluetoothManager.getAdapter();
-            if (bluetoothAdapter == null) {
-                throw new IllegalStateException("No bluetooth adapter available");
-            }
+            authenticatorIdCharacteristic = new CharacteristicBuilder(AUTHENTICATOR_ID_UUID)
+                    .withInitialValue(encodedAuthenticatorId)
+                    .withDescriptor(new CharacteristicUserDescription("Authenticator ID"))
+                    .allowRead()
+                    .build();
+
+            operationalChipsCharacteristic = new CharacteristicBuilder(OPERATIONAL_CHIPS_UUID)
+                    .withDescriptor(new CharacteristicUserDescription("Operational BT Chips"))
+                    .allowWrite()
+                    .supportWritesWithoutResponse()
+                    .build();
+
+            activeDevicesCharacteristic = new CharacteristicBuilder(ACTIVE_DEVICES_UUID)
+                    .withDescriptor(new CharacteristicUserDescription("Active Devices"))
+                    .allowWrite()
+                    .supportWritesWithoutResponse()
+                    .build();
+
+            return new ServiceBuilder(HEALTH_SERVICE_UUID)
+                    .withCharacteristic(authenticatorIdCharacteristic)
+                    .withCharacteristic(operationalChipsCharacteristic)
+                    .withCharacteristic(activeDevicesCharacteristic)
+                    .isPrimaryService()
+                    .build();
         });
+
+        return createService.flatMapCompletable(service -> Completable.defer(() -> {
+            server = RxBleServerProvider.createServer(context);
+            return server.addService(service);
+        }));
     }
 
     public Single<HealthCheckResult> getHealthCheckResult() {
-        return Single.create(emitter -> {
-            Disposable advertisingDisposable = advertiseHealthService()
-                    .doOnSubscribe(disposable -> Timber.d("GATT health check service advertising started"))
-                    .doFinally(() -> Timber.d("GATT health check service advertising stopped"))
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(
-                            () -> {
-                            },
-                            emitter::onError
-                    );
+        return Single.create(healthCheckResultEmitter -> {
 
-            Disposable serverDisposable = provideGattServer()
+            Completable provideService = server.provideServicesAndAdvertise(HEALTH_SERVICE_UUID)
                     .doOnSubscribe(disposable -> Timber.d("GATT server started"))
                     .doFinally(() -> Timber.d("GATT server stopped"))
+                    .subscribeOn(Schedulers.io());
+
+            Completable waitForDisconnections = server.observerClientConnectionStateChanges()
+                    .filter(client -> !client.isConnected())
+                    .doOnNext(client -> Timber.d("Client disconnected, reading health check data: %s", client))
+                    .flatMapMaybe(this::getHealthCheckResult)
+                    .doOnNext(healthCheckResultEmitter::onSuccess)
+                    .firstOrError()
+                    .ignoreElement()
+                    .subscribeOn(Schedulers.io());
+
+            Disposable getHealthCheckResultsDisposable = Completable.mergeArray(provideService, waitForDisconnections)
                     .subscribeOn(Schedulers.io())
                     .subscribe(
-                            () -> {
-                            },
-                            emitter::onError
+                            () -> Timber.d("Stopped waiting for health check results"),
+                            healthCheckResultEmitter::onError
                     );
 
-            emitter.setDisposable(new CompositeDisposable(advertisingDisposable, serverDisposable));
-            this.healthCheckResultEmitter = emitter;
+            healthCheckResultEmitter.setDisposable(getHealthCheckResultsDisposable);
         });
     }
 
-    private Completable advertiseHealthService() {
-        return Completable.create(emitter -> {
-            BluetoothLeAdvertiser advertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
-            if (advertiser == null) {
-                emitter.onError(new AdvertiserException("No BLE advertiser available"));
-                return;
-            }
-
-            AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
-                @Override
-                public void onStartFailure(int errorCode) {
-                    super.onStartFailure(errorCode);
-                    emitter.onError(new AdvertiserException("Unable to start advertising. Error code: " + errorCode));
-                }
-            };
-
-            AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                    .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-                    .setConnectable(true)
-                    .setTimeout(0)
-                    .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-                    .build();
-
-            AdvertiseData data = new AdvertiseData.Builder()
-                    .setIncludeDeviceName(true)
-                    .setIncludeTxPowerLevel(false)
-                    .addServiceUuid(new ParcelUuid(HEALTH_SERVICE_UUID))
-                    .build();
-
-            advertiser.startAdvertising(settings, data, advertiseCallback);
-
-            emitter.setCancellable(() -> advertiser.stopAdvertising(advertiseCallback));
-        });
+    private Maybe<HealthCheckResult> getHealthCheckResult(@NonNull RxBleClient client) {
+        return Single.just(new HealthCheckResult())
+                .flatMap(healthCheckResult -> Completable.mergeArray(
+                        getOperationalBluetoothChips(client)
+                                .doOnSuccess(healthCheckResult::setOperationalBluetoothChips)
+                                .ignoreElement(),
+                        getActiveDevices(client)
+                                .doOnSuccess(healthCheckResult::setActiveDevices)
+                                .ignoreElement()
+                ).toSingleDefault(healthCheckResult))
+                .toMaybe()
+                .doOnError(throwable -> Timber.w(throwable, "Unable to read health check values for %s", client))
+                .onErrorComplete();
     }
 
-    private Completable provideGattServer() {
-        return Completable.create(emitter -> {
-            BluetoothGattServerCallback callback = createGattServiceCallback();
-            gattServer = bluetoothManager.openGattServer(context, callback);
-            if (gattServer == null) {
-                emitter.onError(new IllegalStateException("Unable to open GATT server"));
-                return;
-            }
-
-            BluetoothGattService service = new BluetoothGattService(HEALTH_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
-
-            BluetoothGattCharacteristic authenticatorIdCharacteristic = new BluetoothGattCharacteristic(AUTHENTICATOR_ID_UUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-            authenticatorIdCharacteristic.setValue(authenticatorId.toString());
-            authenticatorIdCharacteristic.addDescriptor(createDescriptionDescriptor("Authenticator ID"));
-            service.addCharacteristic(authenticatorIdCharacteristic);
-
-            BluetoothGattCharacteristic operationalChipsCharacteristic = new BluetoothGattCharacteristic(OPERATIONAL_CHIPS_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
-            operationalChipsCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-            operationalChipsCharacteristic.setValue(0, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-            operationalChipsCharacteristic.addDescriptor(createDescriptionDescriptor("Operational BT Chips"));
-            service.addCharacteristic(operationalChipsCharacteristic);
-
-            BluetoothGattCharacteristic activeDevicesCharacteristic = new BluetoothGattCharacteristic(ACTIVE_DEVICES_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
-            activeDevicesCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-            activeDevicesCharacteristic.setValue(0, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-            activeDevicesCharacteristic.addDescriptor(createDescriptionDescriptor("Active Devices"));
-            service.addCharacteristic(activeDevicesCharacteristic);
-
-            gattServer.addService(service);
-
-            emitter.setCancellable(gattServer::close);
-        });
+    private Single<Integer> getOperationalBluetoothChips(@NonNull RxBleClient client) {
+        return getValueAsInteger(client, operationalChipsCharacteristic);
     }
 
-    private BluetoothGattDescriptor createDescriptionDescriptor(@NonNull String description) {
-        BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(USER_DESCRIPTION_UUID, BluetoothGattDescriptor.PERMISSION_READ);
-        descriptor.setValue(description.getBytes(StandardCharsets.UTF_8));
-        return descriptor;
+    private Single<Integer> getActiveDevices(@NonNull RxBleClient client) {
+        return getValueAsInteger(client, activeDevicesCharacteristic);
     }
 
-    private BluetoothGattServerCallback createGattServiceCallback() {
-        return new BluetoothGattServerCallback() {
-
-            private boolean hasSetOperationalChips = false;
-            private boolean hasSetActiveDevices = false;
-            private HealthCheckResult healthCheckResult = new HealthCheckResult();
-
-            @Override
-            public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-                Timber.d("onConnectionStateChange() called with: device = [%s], status = [%s], newState = [%s]", device, status, newState);
-                super.onConnectionStateChange(device, status, newState);
-                if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    if (hasSetOperationalChips && hasSetActiveDevices) {
-                        if (healthCheckResultEmitter != null && !healthCheckResultEmitter.isDisposed()) {
-                            healthCheckResultEmitter.onSuccess(healthCheckResult);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onServiceAdded(int status, BluetoothGattService service) {
-                Timber.d("onServiceAdded() called with: status = [%s], service = [%s]", status, service);
-                super.onServiceAdded(status, service);
-            }
-
-            @Override
-            public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
-                Timber.d("onCharacteristicReadRequest() called with: device = [%s], requestId = [%s], offset = [%s], characteristic = [%s]", device, requestId, offset, characteristic);
-                super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
-                byte[] value = Arrays.copyOfRange(characteristic.getValue(), offset, characteristic.getValue().length);
-                gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
-            }
-
-            @Override
-            public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-                Timber.d("onCharacteristicWriteRequest() called with: device = [%s], requestId = [%s], characteristic = [%s], preparedWrite = [%s], responseNeeded = [%s], offset = [%s], value = [%s]", device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-                super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-                if (characteristic.getUuid().equals(OPERATIONAL_CHIPS_UUID)) {
-                    hasSetOperationalChips = true;
-                    healthCheckResult.setOperationalBluetoothChips(ByteBuffer.wrap(value).get());
-                    Timber.d("Operational Bluetooth chips set to %d", healthCheckResult.getOperationalBluetoothChips());
-                } else if (characteristic.getUuid().equals(ACTIVE_DEVICES_UUID)) {
-                    hasSetActiveDevices = true;
-                    healthCheckResult.setActiveDevices(ByteBuffer.wrap(value).get());
-                    Timber.d("Active devices set to %d", healthCheckResult.getActiveDevices());
-                }
-                if (responseNeeded) {
-                    gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null);
-                }
-            }
-
-            @Override
-            public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
-                Timber.d("onDescriptorReadRequest() called with: device = [%s], requestId = [%s], offset = [%s], descriptor = [%s]", device, requestId, offset, descriptor);
-                super.onDescriptorReadRequest(device, requestId, offset, descriptor);
-                gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, descriptor.getValue());
-            }
-
-            @Override
-            public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-                Timber.d("onDescriptorWriteRequest() called with: device = [%s], requestId = [%s], descriptor = [%s], preparedWrite = [%s], responseNeeded = [%s], offset = [%s], value = [%s]", device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
-                super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
-            }
-
-            @Override
-            public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-                Timber.d("onExecuteWrite() called with: device = [%s], requestId = [%s], execute = [%s]", device, requestId, execute);
-                super.onExecuteWrite(device, requestId, execute);
-            }
-        };
+    private Single<Integer> getValueAsInteger(@NonNull RxBleClient client, @NonNull RxBleClientValueProvider valueProvider) {
+        return valueProvider.getValue(client)
+                .map(RxBleValue::getBytes)
+                .filter(bytes -> bytes.length == 1)
+                .toSingle()
+                .map(bytes -> (int) bytes[0]);
     }
 
 }

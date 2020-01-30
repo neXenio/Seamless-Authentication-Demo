@@ -28,6 +28,7 @@ dependencies {
 
     implementation 'com.nexenio.seamlessauthentication:core:0.12.0'
 
+    implementation 'com.github.neXenio:RxAndroidBleServer:0.1.0'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
