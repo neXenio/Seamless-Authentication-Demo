@@ -69,6 +69,6 @@
             android:visibility="gone"
             app:layout_anchor="@+id/authenticator_health_container"
             app:layout_anchorGravity="top|end"
-            app:srcCompat="@drawable/ic_autorenew_black_24dp" />
+            app:srcCompat="@drawable/detection_start" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

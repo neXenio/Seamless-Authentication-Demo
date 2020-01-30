@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|start"
             android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@drawable/ic_autorenew_black_24dp"
+            app:srcCompat="@drawable/detection_start"
             app:layout_anchor="@+id/contentFrameLayout"
             app:layout_anchorGravity="top|end"/>
 

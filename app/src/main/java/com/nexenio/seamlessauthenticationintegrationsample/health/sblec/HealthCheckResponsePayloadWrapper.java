@@ -1,8 +1,9 @@
-package com.nexenio.seamlessauthenticationintegrationsample.health;
+package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import com.nexenio.sblec.payload.PayloadWrapper;
 import com.nexenio.sblec.receiver.ReceiverPayload;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
+import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
 import java.nio.ByteBuffer;
 
@@ -19,13 +20,13 @@ public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
 
     private int deviceIdHashcode;
 
-    private final HealthCheckResult healthCheckResult;
+    private HealthCheckResult healthCheckResult;
 
     private int nonce;
 
     public HealthCheckResponsePayloadWrapper(@NonNull ReceiverPayload receiverPayload) {
         super(receiverPayload);
-        healthCheckResult = new HealthCheckResult();
+
     }
 
     @Override
@@ -35,6 +36,7 @@ public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
 
             deviceIdHashcode = byteBuffer.getShort();
 
+            healthCheckResult = new HealthCheckResult();
             healthCheckResult.setOperationalBluetoothChips(byteBuffer.get());
             healthCheckResult.setActiveDevices(byteBuffer.get());
 

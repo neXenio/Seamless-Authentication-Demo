@@ -58,6 +58,7 @@ public class AuthenticatorHealthActivity extends SeamlessAuthenticationActivity 
     protected void onResume() {
         super.onResume();
         hideSystemUi();
+        stopSeamlessAuthenticatorDetection();
     }
 
     @Override
