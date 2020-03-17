@@ -81,6 +81,7 @@ public class SblecHealthManager {
                     .build();
 
             this.nonce = payloadWrapper.getNonce();
+            Timber.d("Current health check request nonce: %d", nonce);
 
             return payloadWrapper.toSenderPayload();
         });
@@ -108,7 +109,13 @@ public class SblecHealthManager {
                 .filter(new CompletelyReceivedFilter())
                 .doOnNext(receiverPayload -> Timber.v("Received health check response: %s", receiverPayload))
                 .map(HealthCheckResponsePayloadWrapper::new)
-                .doOnNext(healthCheckResponsePayloadWrapper -> Timber.i("Received health check response: %s", healthCheckResponsePayloadWrapper))
+                .doOnNext(payloadWrapper -> {
+                    if (payloadWrapper.getNonce() == nonce) {
+                        Timber.i("Received health check response: %s", payloadWrapper);
+                    } else {
+                        Timber.w("Received health check response, but nonce doesn't match: %s", payloadWrapper);
+                    }
+                })
                 //.filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
                 .filter(healthCheckResponsePayloadWrapper -> healthCheckResponsePayloadWrapper.getNonce() == nonce)
                 .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
