@@ -54,6 +54,7 @@ public class HealthCheckResponsePayloadWrapper extends PayloadWrapper {
         return "HealthCheckResponsePayloadWrapper{" +
                 "deviceIdHashcode=" + deviceIdHashcode +
                 ", healthCheckResult=" + healthCheckResult +
+                ", nonce=" + nonce +
                 '}';
     }
 

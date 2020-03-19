@@ -52,7 +52,7 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     private static final long SBLEC_HEALTH_CHECK_DELAY = TimeUnit.SECONDS.toMillis(1);
     private static final long SBLEC_HEALTH_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(1);
-    private static final long SBLEC_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    private static final long SBLEC_HEALTH_CHECK_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
 
     private static final long GATT_HEALTH_CHECK_DELAY = SBLEC_HEALTH_CHECK_DELAY + (SBLEC_HEALTH_CHECK_INTERVAL / 2);
     private static final long GATT_HEALTH_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(1);
@@ -150,8 +150,12 @@ public class AuthenticatorHealthFragment extends Fragment {
         indicateGattUnknown();
 
         healthMonitorDisposable = Completable.mergeArray(
-                monitorSblecHealth().subscribeOn(Schedulers.io()),
-                monitorGattHealth().subscribeOn(Schedulers.io())
+                monitorSblecHealth()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread()),
+                monitorGattHealth()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
         ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally(() -> {
@@ -301,38 +305,43 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     @SuppressLint("CheckResult")
     private void trackHealth(@NonNull String protocol, boolean healthy) {
-        Completable.fromAction(
-                () -> {
-                    URL url = new URL("https://feedbackseamless.nexenio.com/api/feedback");
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-                    connection.setDoOutput(true);
-                    connection.setDoInput(true);
+        Completable sendToFeedbackServer = Completable.create(emitter -> {
+            try {
+                URL url = new URL("https://feedbackseamless.nexenio.com/api/feedback");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                connection.setDoOutput(true);
+                connection.setDoInput(true);
 
-                    String id = protocol.toLowerCase() + "-" + (healthy ? "healthy" : "unhealthy") + "-" + authenticatorId;
-                    String name = healthy ? "Healthy" : "Unhealthy";
-                    String path = "seamless-gate/" + id;
+                String id = protocol.toLowerCase() + "-" + (healthy ? "healthy" : "unhealthy") + "-" + authenticatorId;
+                String name = healthy ? "Healthy" : "Unhealthy";
+                String path = "seamless-gate/" + id;
 
-                    JSONObject selectedOption = new JSONObject();
-                    selectedOption.put("id", id);
-                    selectedOption.put("name", name);
-                    selectedOption.put("path", path);
+                JSONObject selectedOption = new JSONObject();
+                selectedOption.put("id", id);
+                selectedOption.put("name", name);
+                selectedOption.put("path", path);
 
-                    JSONObject feedback = new JSONObject();
-                    feedback.put("sessionId", UUID.randomUUID());
-                    feedback.put("selectedOption", selectedOption);
+                JSONObject feedback = new JSONObject();
+                feedback.put("sessionId", UUID.randomUUID());
+                feedback.put("selectedOption", selectedOption);
 
-                    DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-                    os.writeBytes(feedback.toString());
+                DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes(feedback.toString());
 
-                    os.flush();
-                    os.close();
+                os.flush();
+                os.close();
 
-                    Timber.v("Health tracking response: %s", connection.getResponseMessage());
-                    connection.disconnect();
-                })
-                .subscribeOn(Schedulers.io())
+                Timber.v("Health tracking response: %s", connection.getResponseMessage());
+                connection.disconnect();
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.tryOnError(e);
+            }
+        });
+
+        sendToFeedbackServer.subscribeOn(Schedulers.io())
                 .timeout(5, TimeUnit.SECONDS)
                 .subscribe(
                         () -> Timber.v("%s health tracked", protocol),
