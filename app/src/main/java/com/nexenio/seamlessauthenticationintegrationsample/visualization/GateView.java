@@ -15,7 +15,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.nexenio.bleindoorpositioning.ble.advertising.AdvertisingPacket;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
@@ -586,15 +586,15 @@ public class GateView extends View implements GateVisualization {
     }
 
     @Override
-    public void onAuthenticatorUpdated(@NonNull SeamlessAuthenticator authenticator) {
-        if (!(authenticator instanceof Gate)) {
-            throw new IllegalArgumentException("Authenticator is not a gate");
+    public void onCommunicationUnitUpdated(@NonNull CommunicationUnit communicationUnit) {
+        if (!(communicationUnit instanceof Gate)) {
+            throw new IllegalArgumentException("Communication Unit is not a gate");
         }
-        onAuthenticatorUpdated((Gate) authenticator);
+        onCommunicationUnitUpdated((Gate) communicationUnit);
     }
 
     @Override
-    public void onAuthenticatorUpdated(@NonNull Gate gate) {
+    public void onCommunicationUnitUpdated(@NonNull Gate gate) {
         if (this.gate == gate) {
             return;
         }

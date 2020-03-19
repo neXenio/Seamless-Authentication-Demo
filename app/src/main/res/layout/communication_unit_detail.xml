@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".detail.AuthenticatorDetailFragment">
+        tools:context=".detail.CommunicationUnitDetailFragment">
 
     <com.google.android.material.card.MaterialCardView
             style="@style/AppTheme.CardView">
@@ -16,17 +16,17 @@
             <TextView
                     android:id="@+id/nameTextView"
                     style="@style/AppTheme.CardView.TitleTextView"
-                    android:text="@string/authenticator_name_unknown"/>
+                    android:text="@string/communication_unit_name_unknown"/>
 
             <TextView
                     android:id="@+id/idTextView"
                     style="@style/AppTheme.CardView.SubtitleTextView"
-                    android:text="@string/authenticator_id_unknown"/>
+                    android:text="@string/communication_unit_id_unknown"/>
 
             <TextView
                     android:id="@+id/descriptionTextView"
                     style="@style/AppTheme.CardView.ContentTextView"
-                    android:text="@string/authenticator_name_unknown"/>
+                    android:text="@string/communication_unit_name_unknown"/>
 
             <RelativeLayout
                     android:layout_width="match_parent"

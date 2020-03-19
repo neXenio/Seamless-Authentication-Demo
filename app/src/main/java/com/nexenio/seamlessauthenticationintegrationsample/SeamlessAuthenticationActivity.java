@@ -17,8 +17,8 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
+import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.concurrent.TimeUnit;
@@ -37,8 +37,7 @@ import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
- * An activity that uses a {@link SeamlessAuthenticatorDetector} to detect {@link
- * SeamlessAuthenticator}s.
+ * An activity that uses a {@link CommunicationUnitDetector} to detect {@link CommunicationUnit}s.
  */
 public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
 
@@ -48,8 +47,8 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     protected SampleApplication application;
 
     protected RxPermissions rxPermissions;
-    protected SeamlessAuthenticatorDetector authenticatorDetector;
-    protected Disposable authenticatorDetectorDisposable;
+    protected CommunicationUnitDetector communicationUnitDetector;
+    protected Disposable communicationUnitDetectorDisposable;
 
     protected CoordinatorLayout coordinatorLayout;
     protected CollapsingToolbarLayout toolbarLayout;
@@ -65,7 +64,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         application = (SampleApplication) getApplication();
-        authenticatorDetector = application.getAuthenticatorDetector();
+        communicationUnitDetector = application.getCommunicationUnitDetector();
         rxPermissions = new RxPermissions(this);
 
         setContentView();
@@ -97,7 +96,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        startSeamlessAuthenticatorDetection();
+        startCommunicationUnitDetection();
 
         Flowable.timer(1, TimeUnit.SECONDS)
                 .ignoreElements()
@@ -109,33 +108,33 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        stopSeamlessAuthenticatorDetection();
+        stopCommunicationUnitDetection();
     }
 
     /*
-        Seamless authenticator detection
+        Communication Unit detection
      */
 
     @CallSuper
-    protected void startSeamlessAuthenticatorDetection() {
-        Timber.d("startSeamlessAuthenticatorDetection() called");
-        authenticatorDetectorDisposable = authenticatorDetector.detect()
+    protected void startCommunicationUnitDetection() {
+        Timber.d("startCommunicationUnitDetection() called");
+        communicationUnitDetectorDisposable = communicationUnitDetector.detect()
                 .ignoreElements()
                 .doOnSubscribe(subscription -> runOnUiThread(this::indicateDetectionStarted))
                 .doFinally(() -> runOnUiThread(this::indicateDetectionStopped))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        () -> Timber.i("Seamless authenticator detection completed"),
-                        this::performSeamlessAuthenticationTroubleshooting
+                        () -> Timber.i("Communication Unit detection completed"),
+                        this::performTroubleshooting
                 );
     }
 
     @CallSuper
-    protected void stopSeamlessAuthenticatorDetection() {
-        Timber.d("stopSeamlessAuthenticatorDetection() called");
-        if (authenticatorDetectorDisposable != null && !authenticatorDetectorDisposable.isDisposed()) {
-            authenticatorDetectorDisposable.dispose();
+    protected void stopCommunicationUnitDetection() {
+        Timber.d("stopCommunicationUnitDetection() called");
+        if (communicationUnitDetectorDisposable != null && !communicationUnitDetectorDisposable.isDisposed()) {
+            communicationUnitDetectorDisposable.dispose();
         }
     }
 
@@ -143,7 +142,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     protected void indicateDetectionStarted() {
         Timber.d("indicateDetectionStarted() called");
         progressBarFrameLayout.setVisibility(View.VISIBLE);
-        fab.setOnClickListener(view -> stopSeamlessAuthenticatorDetection());
+        fab.setOnClickListener(view -> stopCommunicationUnitDetection());
         fab.setImageResource(R.drawable.detection_pause);
 
         errorSnackbar.dismiss();
@@ -156,7 +155,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
     protected void indicateDetectionStopped() {
         Timber.d("indicateDetectionStopped() called");
         progressBarFrameLayout.setVisibility(View.GONE);
-        fab.setOnClickListener(view -> startSeamlessAuthenticatorDetection());
+        fab.setOnClickListener(view -> startCommunicationUnitDetection());
         fab.setImageResource(R.drawable.detection_start);
 
         statusSnackbar.dismiss();
@@ -166,8 +165,8 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         }
     }
 
-    private void performSeamlessAuthenticationTroubleshooting(@NonNull Throwable throwable) {
-        Timber.w(throwable, "Unable to detect seamless authenticators");
+    private void performTroubleshooting(@NonNull Throwable throwable) {
+        Timber.w(throwable, "Unable to detect communication units");
 
         checkPermissions();
         checkBluetoothEnabled();
@@ -201,7 +200,7 @@ public abstract class SeamlessAuthenticationActivity extends AppCompatActivity {
         rxPermissions.request(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION)
                 .subscribe(permissionsGranted -> {
                     if (permissionsGranted) {
-                        startSeamlessAuthenticatorDetection();
+                        startCommunicationUnitDetection();
                     } else {
                         Timber.w("Required permissions not granted");
                         showMissingPermissionError();

@@ -55,7 +55,7 @@ SeamlessAuthenticatorDetector authenticatorDetector = SeamlessAuthentication.cre
 
 ### Detect an Authenticator
 
-In order to actually detect nearby authenticators, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
+In order to actually detect nearby communicationUnits, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
 
 ```java
 authenticatorDetector.detect()
@@ -65,14 +65,14 @@ authenticatorDetector.detect()
                     Timber.d("Seamless authenticator detected: %s", seamlessAuthenticator);
                 },
                 throwable -> {
-                    Timber.w(throwable, "Unable to detect seamless authenticators");
+                    Timber.w(throwable, "Unable to detect seamless communicationUnits");
                 }
         );
 ```
 
 Please be aware that the `detect()` method may emit `SeamlessAuthenticator` instances frequently, possibly also the same instance multiple times.
 
-In order to get all currently detected authenticators (each instance only once), use the `getDetectedAuthenticators()` method.
+In order to get all currently detected communicationUnits (each instance only once), use the `getDetectedAuthenticators()` method.
 
 If you only care about the closest authenticator, use the `getClosestAuthenticator()` method.
 

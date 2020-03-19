@@ -23,8 +23,8 @@
             android:usesCleartextTraffic="true"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
-                android:name=".overview.AuthenticatorListActivity"
-                android:label="@string/title_authenticator_list"
+                android:name=".overview.CommunicationUnitListActivity"
+                android:label="@string/title_communication_unit_list"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,25 +33,25 @@
         </activity>
 
         <activity
-                android:name=".detail.AuthenticatorDetailActivity"
+                android:name=".detail.CommunicationUnitDetailActivity"
                 android:exported="true"
-                android:label="@string/title_authenticator_detail"
-                android:parentActivityName=".overview.AuthenticatorListActivity"
+                android:label="@string/title_communication_unit_detail"
+                android:parentActivityName=".overview.CommunicationUnitListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
         </activity>
 
         <activity
-                android:name=".health.AuthenticatorHealthActivity"
+                android:name=".health.CommunicationUnitHealthActivity"
                 android:exported="true"
-                android:label="@string/title_authenticator_health"
-                android:parentActivityName=".overview.AuthenticatorListActivity"
+                android:label="@string/title_communication_unit_health"
+                android:parentActivityName=".overview.CommunicationUnitListActivity"
                 android:theme="@style/DarkFullscreen">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity" />
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
         </activity>
 
     </application>

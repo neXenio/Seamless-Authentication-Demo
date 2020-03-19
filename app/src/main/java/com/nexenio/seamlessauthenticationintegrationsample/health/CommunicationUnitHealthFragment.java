@@ -12,13 +12,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.nexenio.sblec.internal.sender.advertiser.AdvertiserException;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
+import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
 import com.nexenio.seamlessauthenticationintegrationsample.health.gatt.GattHealthManager;
 import com.nexenio.seamlessauthenticationintegrationsample.health.sblec.SblecHealthManager;
-import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -39,16 +39,16 @@ import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
- * A fragment representing a single Authenticator health check screen. This fragment is either
- * contained in a {@link AuthenticatorListActivity} in two-pane mode (on tablets) or a {@link
- * AuthenticatorHealthActivity} on handsets.
+ * A fragment representing a single {@link CommunicationUnit} health check screen. This fragment is
+ * either contained in a {@link CommunicationUnitListActivity} in two-pane mode (on tablets) or a
+ * {@link CommunicationUnitHealthActivity} on handsets.
  */
-public class AuthenticatorHealthFragment extends Fragment {
+public class CommunicationUnitHealthFragment extends Fragment {
 
     /**
      * The fragment argument representing the item ID that this fragment represents.
      */
-    public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
+    public static final String KEY_COMMUNICATION_UNIT_ID = "communication_unit_id";
 
     private static final long SBLEC_HEALTH_CHECK_DELAY = TimeUnit.SECONDS.toMillis(1);
     private static final long SBLEC_HEALTH_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(1);
@@ -60,12 +60,12 @@ public class AuthenticatorHealthFragment extends Fragment {
 
     protected SampleApplication application;
 
-    private UUID authenticatorId;
+    private UUID communicationUnitId;
 
-    private SeamlessAuthenticatorDetector authenticatorDetector;
+    private CommunicationUnitDetector communicationUnitDetector;
     private Disposable healthMonitorDisposable;
 
-    private SeamlessAuthenticator authenticator;
+    private CommunicationUnit communicationUnit;
 
     private SblecHealthManager sblecHealthManager;
     private GattHealthManager gattHealthManager;
@@ -88,7 +88,7 @@ public class AuthenticatorHealthFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
      * screen orientation changes).
      */
-    public AuthenticatorHealthFragment() {
+    public CommunicationUnitHealthFragment() {
 
     }
 
@@ -97,21 +97,21 @@ public class AuthenticatorHealthFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         SampleApplication application = (SampleApplication) getActivity().getApplication();
-        authenticatorDetector = application.getAuthenticatorDetector();
+        communicationUnitDetector = application.getCommunicationUnitDetector();
 
-        if (getArguments().containsKey(KEY_AUTHENTICATOR_ID)) {
-            String idArgument = getArguments().getString(KEY_AUTHENTICATOR_ID);
-            authenticatorId = UUID.fromString(idArgument);
-            Timber.d("Authenticator ID: %s", authenticatorId);
+        if (getArguments().containsKey(KEY_COMMUNICATION_UNIT_ID)) {
+            String idArgument = getArguments().getString(KEY_COMMUNICATION_UNIT_ID);
+            communicationUnitId = UUID.fromString(idArgument);
+            Timber.d("Communication Unit ID: %s", communicationUnitId);
         }
 
-        sblecHealthManager = new SblecHealthManager(authenticatorId);
-        gattHealthManager = new GattHealthManager(authenticatorId);
+        sblecHealthManager = new SblecHealthManager(communicationUnitId);
+        gattHealthManager = new GattHealthManager(communicationUnitId);
     }
 
     @Override
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.authenticator_health, container, false);
+        View rootView = inflater.inflate(R.layout.communication_unit_health, container, false);
 
         appBarLayout = getActivity().findViewById(R.id.toolbar_layout);
 
@@ -314,7 +314,7 @@ public class AuthenticatorHealthFragment extends Fragment {
                 connection.setDoOutput(true);
                 connection.setDoInput(true);
 
-                String id = protocol.toLowerCase() + "-" + (healthy ? "healthy" : "unhealthy") + "-" + authenticatorId;
+                String id = protocol.toLowerCase() + "-" + (healthy ? "healthy" : "unhealthy") + "-" + communicationUnitId;
                 String name = healthy ? "Healthy" : "Unhealthy";
                 String path = "seamless-gate/" + id;
 

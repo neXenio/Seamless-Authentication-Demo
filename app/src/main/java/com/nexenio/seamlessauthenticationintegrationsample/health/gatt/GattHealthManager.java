@@ -28,20 +28,20 @@ import timber.log.Timber;
 public class GattHealthManager {
 
     private static final UUID HEALTH_SERVICE_UUID = UUID.fromString("ea64c235-6340-4e00-8d6b-3ccd0dbf9b2d");
-    private static final UUID AUTHENTICATOR_ID_UUID = UUID.fromString("44c0f704-d6fb-46a5-b3f3-86dcb2479dae");
+    private static final UUID COMMUNICATION_UNIT_ID_UUID = UUID.fromString("44c0f704-d6fb-46a5-b3f3-86dcb2479dae");
     private static final UUID OPERATIONAL_CHIPS_UUID = UUID.fromString("c664d698-e3e6-4555-bfac-d44488cbe279");
     private static final UUID ACTIVE_DEVICES_UUID = UUID.fromString("09442147-5ec0-4341-a382-58f43a6f13e5");
 
-    private final UUID authenticatorId;
+    private final UUID communicationUnitId;
 
     private RxBleServer server;
 
-    private RxBleCharacteristic authenticatorIdCharacteristic;
+    private RxBleCharacteristic communicationUnitIdCharacteristic;
     private RxBleCharacteristic operationalChipsCharacteristic;
     private RxBleCharacteristic activeDevicesCharacteristic;
 
-    public GattHealthManager(UUID authenticatorId) {
-        this.authenticatorId = authenticatorId;
+    public GattHealthManager(UUID communicationUnitId) {
+        this.communicationUnitId = communicationUnitId;
     }
 
     public Completable initialize(@NonNull Context context) {
@@ -50,11 +50,11 @@ public class GattHealthManager {
 
     private Completable initializeServer(@NonNull Context context) {
         Single<RxBleService> createService = Single.fromCallable(() -> {
-            byte[] encodedAuthenticatorId = authenticatorId.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] encodedCommunicationUnitId = communicationUnitId.toString().getBytes(StandardCharsets.UTF_8);
 
-            authenticatorIdCharacteristic = new CharacteristicBuilder(AUTHENTICATOR_ID_UUID)
-                    .withInitialValue(encodedAuthenticatorId)
-                    .withDescriptor(new CharacteristicUserDescription("Authenticator ID"))
+            communicationUnitIdCharacteristic = new CharacteristicBuilder(COMMUNICATION_UNIT_ID_UUID)
+                    .withInitialValue(encodedCommunicationUnitId)
+                    .withDescriptor(new CharacteristicUserDescription("Communication Unit ID"))
                     .allowRead()
                     .build();
 
@@ -71,7 +71,7 @@ public class GattHealthManager {
                     .build();
 
             return new ServiceBuilder(HEALTH_SERVICE_UUID)
-                    .withCharacteristic(authenticatorIdCharacteristic)
+                    .withCharacteristic(communicationUnitIdCharacteristic)
                     .withCharacteristic(operationalChipsCharacteristic)
                     .withCharacteristic(activeDevicesCharacteristic)
                     .isPrimaryService()

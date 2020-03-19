@@ -1,8 +1,8 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import com.nexenio.sblec.payload.PayloadWrapper;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -18,7 +18,7 @@ public class HealthCheckRequestPayloadWrapper extends PayloadWrapper {
 
     private static final short ID = 110;
 
-    private UUID authenticatorId;
+    private UUID communicationUnitId;
 
     private int nonce;
 
@@ -35,8 +35,8 @@ public class HealthCheckRequestPayloadWrapper extends PayloadWrapper {
         return Single.fromCallable(() -> {
             ByteBuffer buffer = ByteBuffer.allocate(17);
 
-            buffer.putLong(authenticatorId.getMostSignificantBits());
-            buffer.putLong(authenticatorId.getLeastSignificantBits());
+            buffer.putLong(communicationUnitId.getMostSignificantBits());
+            buffer.putLong(communicationUnitId.getLeastSignificantBits());
             buffer.put((byte) nonce);
 
             return buffer;
@@ -48,12 +48,12 @@ public class HealthCheckRequestPayloadWrapper extends PayloadWrapper {
         return ID;
     }
 
-    public UUID getAuthenticatorId() {
-        return authenticatorId;
+    public UUID getCommunicationUnitId() {
+        return communicationUnitId;
     }
 
-    public void setAuthenticatorId(UUID authenticatorId) {
-        this.authenticatorId = authenticatorId;
+    public void setCommunicationUnitId(UUID communicationUnitId) {
+        this.communicationUnitId = communicationUnitId;
     }
 
     public int getNonce() {
@@ -73,12 +73,12 @@ public class HealthCheckRequestPayloadWrapper extends PayloadWrapper {
             payloadWrapper.setNonce((int) Math.round(Math.random() * 127));
         }
 
-        public Builder setAuthenticator(@NonNull SeamlessAuthenticator authenticator) {
-            return setAuthenticatorId(authenticator.getId().blockingGet());
+        public Builder setCommunicationUnit(@NonNull CommunicationUnit communicationUnit) {
+            return setCommunicationUnitId(communicationUnit.getId().blockingGet());
         }
 
-        public Builder setAuthenticatorId(@NonNull UUID authenticatorId) {
-            payloadWrapper.authenticatorId = authenticatorId;
+        public Builder setCommunicationUnitId(@NonNull UUID communicationUnitId) {
+            payloadWrapper.communicationUnitId = communicationUnitId;
             return this;
         }
 
