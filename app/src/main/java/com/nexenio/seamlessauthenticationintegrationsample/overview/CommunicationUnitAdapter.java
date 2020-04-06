@@ -47,10 +47,8 @@ public class CommunicationUnitAdapter extends RecyclerView.Adapter<Communication
             CommunicationUnit communicationUnit = (CommunicationUnit) view.getTag();
             if (useDetailFragment) {
                 showInDetailFragment(communicationUnit);
-                //showInHealthFragment(communicationUnit);
             } else {
                 showInDetailActivity(view.getContext(), communicationUnit);
-                //showInHealthActivity(view.getContext(), communicationUnit);
             }
         };
     }

@@ -40,7 +40,7 @@ public class SblecHealthManager {
     public Completable initialize(@NonNull Context context) {
         return Completable.fromAction(() -> {
             sblec = Sblec.getInstance();
-            deviceIdHashCode = (short) Sblec.getInstance().getOrCreateDeviceIdHashCode(context);
+            deviceIdHashCode = (short) sblec.getOrCreateDeviceIdHashCode(context);
             sender = sblec.createPayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
             receiver = sblec.createPayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
         }).andThen(Completable.defer(() -> Completable.mergeArray(
