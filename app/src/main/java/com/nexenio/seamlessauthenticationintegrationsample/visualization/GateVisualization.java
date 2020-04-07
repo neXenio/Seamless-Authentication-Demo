@@ -6,9 +6,9 @@ import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.Ga
 
 import androidx.annotation.NonNull;
 
-public interface GateVisualization extends AuthenticatorVisualization {
+public interface GateVisualization extends CommunicationUnitVisualization {
 
-    void onAuthenticatorUpdated(@NonNull Gate gate);
+    void onCommunicationUnitUpdated(@NonNull Gate gate);
 
     void onDetectionBeaconUpdated(@NonNull GatewayDetectionBeacon gatewayDetectionBeacon);
 

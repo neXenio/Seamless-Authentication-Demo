@@ -2,8 +2,8 @@ package com.nexenio.seamlessauthenticationintegrationsample;
 
 import android.app.Application;
 
+import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.nexenio.seamlessauthentication.SeamlessAuthentication;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
 
 import java.util.UUID;
 
@@ -16,19 +16,19 @@ public class SampleApplication extends Application {
     private UUID deviceId = UUID.randomUUID();
 
     @NonNull
-    private SeamlessAuthenticatorDetector authenticatorDetector;
+    private CommunicationUnitDetector communicationUnitDetector;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
 
-        authenticatorDetector = SeamlessAuthentication.createDetector(this);
+        communicationUnitDetector = SeamlessAuthentication.createDetector(this);
     }
 
     @NonNull
-    public SeamlessAuthenticatorDetector getAuthenticatorDetector() {
-        return authenticatorDetector;
+    public CommunicationUnitDetector getCommunicationUnitDetector() {
+        return communicationUnitDetector;
     }
 
     public UUID getUserId() {

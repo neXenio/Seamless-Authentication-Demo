@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".health.AuthenticatorHealthActivity"
+        tools:context=".health.CommunicationUnitHealthActivity"
         tools:ignore="MergeRootFrame">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -38,7 +38,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
-            android:id="@+id/authenticator_health_container"
+            android:id="@+id/communication_unit_health_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="4dp"
             android:visibility="gone"
-            app:layout_anchor="@+id/authenticator_health_container"
+            app:layout_anchor="@+id/communication_unit_health_container"
             app:layout_anchorGravity="bottom">
 
         <ProgressBar
@@ -67,7 +67,7 @@
             android:layout_gravity="center_vertical|start"
             android:layout_margin="@dimen/fab_margin"
             android:visibility="gone"
-            app:layout_anchor="@+id/authenticator_health_container"
+            app:layout_anchor="@+id/communication_unit_health_container"
             app:layout_anchorGravity="top|end"
             app:srcCompat="@drawable/detection_start" />
 

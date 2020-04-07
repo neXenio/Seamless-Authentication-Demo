@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".detail.AuthenticatorDetailActivity"
-        tools:ignore="MergeRootFrame">
+        tools:context=".overview.CommunicationUnitListActivity">
 
     <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
@@ -21,6 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fitsSystemWindows="true"
+                app:title="@string/title_communication_unit_list"
                 app:contentScrim="?attr/colorPrimary"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed"
                 app:toolbarId="@+id/toolbar">
@@ -30,34 +31,43 @@
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     app:layout_collapseMode="pin"
-                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
-            android:id="@+id/authenticator_detail_container"
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <FrameLayout
-            android:id="@+id/progressBarFrameLayout"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            app:layout_anchor="@+id/authenticator_detail_container"
-            app:layout_anchorGravity="top">
-
-        <ProgressBar
-                android:id="@+id/progressBar"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        <FrameLayout
+                android:id="@+id/progressBarFrameLayout"
                 android:layout_width="match_parent"
-                android:layout_height="18dp"
-                android:layout_gravity="center"
-                android:indeterminate="true" />
+                android:layout_height="4dp">
 
-    </FrameLayout>
+            <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:indeterminate="true"
+                    android:layout_gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"/>
+
+        </FrameLayout>
+
+        <FrameLayout
+                android:id="@+id/contentFrameLayout"
+                android:layout_below="@id/progressBarFrameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <include layout="@layout/communication_unit_list"/>
+
+        </FrameLayout>
+
+    </RelativeLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
@@ -65,8 +75,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|start"
             android:layout_margin="@dimen/fab_margin"
-            app:layout_anchor="@+id/authenticator_detail_container"
-            app:layout_anchorGravity="top|end"
-            app:srcCompat="@drawable/detection_start" />
+            app:srcCompat="@drawable/detection_start"
+            app:layout_anchor="@+id/contentFrameLayout"
+            app:layout_anchorGravity="top|end"/>
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

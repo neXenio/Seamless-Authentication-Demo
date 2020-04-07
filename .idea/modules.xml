@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Authentication SDK Demo.iml" filepath="$PROJECT_DIR$/Authentication SDK Demo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Authentication SDK Android Demo.iml" filepath="$PROJECT_DIR$/Authentication SDK Android Demo.iml" group="Authentication SDK Android Demo" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="Authentication SDK Android Demo/app" />
     </modules>
   </component>
 </project>

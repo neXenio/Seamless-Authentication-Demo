@@ -6,7 +6,7 @@
         android:background="@android:color/black"
         android:keepScreenOn="true"
         android:orientation="vertical"
-        tools:context=".detail.AuthenticatorDetailFragment">
+        tools:context=".detail.CommunicationUnitDetailFragment">
 
     <RelativeLayout
             android:id="@+id/sblecContainer"

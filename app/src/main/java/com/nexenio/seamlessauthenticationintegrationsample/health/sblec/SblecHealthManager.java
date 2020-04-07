@@ -25,7 +25,7 @@ import timber.log.Timber;
 
 public class SblecHealthManager {
 
-    private final UUID authenticatorId;
+    private final UUID communicationUnitId;
 
     private Sblec sblec;
     private int deviceIdHashCode;
@@ -33,14 +33,14 @@ public class SblecHealthManager {
     private PayloadReceiver receiver;
     private int nonce;
 
-    public SblecHealthManager(UUID authenticatorId) {
-        this.authenticatorId = authenticatorId;
+    public SblecHealthManager(UUID communicationUnitId) {
+        this.communicationUnitId = communicationUnitId;
     }
 
     public Completable initialize(@NonNull Context context) {
         return Completable.fromAction(() -> {
             sblec = Sblec.getInstance();
-            deviceIdHashCode = (short) Sblec.getDeviceIdHashCode(context);
+            deviceIdHashCode = (short) sblec.getOrCreateDeviceIdHashCode(context);
             sender = sblec.createPayloadSender(context, Sblec.COMPANY_ID_NEXENIO);
             receiver = sblec.createPayloadReceiver(context, Sblec.COMPANY_ID_NEXENIO);
         }).andThen(Completable.defer(() -> Completable.mergeArray(
@@ -77,7 +77,7 @@ public class SblecHealthManager {
     private Single<SenderPayload> createSblecHealthCheckRequest() {
         return Single.defer(() -> {
             HealthCheckRequestPayloadWrapper payloadWrapper = new HealthCheckRequestPayloadWrapper.Builder()
-                    .setAuthenticatorId(authenticatorId)
+                    .setCommunicationUnitId(communicationUnitId)
                     .build();
 
             this.nonce = payloadWrapper.getNonce();
@@ -103,7 +103,6 @@ public class SblecHealthManager {
     }
 
     private Single<HealthCheckResult> receiveSblecHealthCheckResponse() {
-        // TODO: 2020-01-22 filter for own device ID hashcode
         return receiver.receive()
                 .filter(new PayloadIdFilter(HealthCheckResponsePayloadWrapper.ID))
                 .filter(new CompletelyReceivedFilter())
@@ -116,7 +115,7 @@ public class SblecHealthManager {
                         Timber.w("Received health check response, but nonce doesn't match: %s", payloadWrapper);
                     }
                 })
-                //.filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
+                .filter(responsePayloadWrapper -> responsePayloadWrapper.getDeviceIdHashcode() == deviceIdHashCode)
                 .filter(healthCheckResponsePayloadWrapper -> healthCheckResponsePayloadWrapper.getNonce() == nonce)
                 .map(HealthCheckResponsePayloadWrapper::getHealthCheckResult)
                 .firstOrError();

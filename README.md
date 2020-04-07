@@ -39,62 +39,62 @@ nexenio_artifactory_password=PLACEHOLDER
 
 ## Getting Started
 
-The library concept consists of two main interfaces. The `SeamlessAuthenticator` represents a physical device that could authenticate the current user (e.g. an access control gate). In order to detect these devices, you need a `SeamlessAuthenticatorDetector` (e.g. a smartphone using Bluetooth).
+The library concept consists of two main interfaces. The `CommunicationUnit` represents a physical device that the current user could authenticate at (e.g. an access control gate). In order to detect these devices, you need a `CommunicationUnitDetector`.
 
 Please avoid any imports from the `internal` package, as these are subject to change without notice or deprecation warnings.
 
 All interfaces and the internal implementation heavily relies on [RxJava](https://github.com/ReactiveX/RxJava).
 
-### Create an Authenticator Detector
+### Create a Communication Unit Detector
 
 You should obtain a detector instance through the `SeamlessAuthentication` Singleton, which is the entrypoint to the library. You will need to pass a `Conext`, which you may obtain from a `Fragment`, `Activity`, `Application` or `Service` of your app. It's your responsibility to **only hold a single instance** of the created detector!
 
 ```java
-SeamlessAuthenticatorDetector authenticatorDetector = SeamlessAuthentication.createDetector(this);
+CommunicationUnitDetector communicationUnitDetector = SeamlessAuthentication.createDetector(this);
 ```
 
 ### Detect an Authenticator
 
-In order to actually detect nearby authenticators, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
+In order to actually detect nearby communicationUnits, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
 
 ```java
-authenticatorDetector.detect()
+communicationUnitDetector.detect()
         .subscribeOn(Schedulers.io())
         .subscribe(
-                seamlessAuthenticator -> {
-                    Timber.d("Seamless authenticator detected: %s", seamlessAuthenticator);
+                communicationUnit -> {
+                    Timber.d("Communication unit detected: %s", communicationUnit);
                 },
                 throwable -> {
-                    Timber.w(throwable, "Unable to detect seamless authenticators");
+                    Timber.w(throwable, "Unable to detect communication units");
                 }
         );
 ```
 
-Please be aware that the `detect()` method may emit `SeamlessAuthenticator` instances frequently, possibly also the same instance multiple times.
+Please be aware that the `detect()` method may emit `CommunicationUnit` instances frequently, possibly also the same instance multiple times.
 
-In order to get all currently detected authenticators (each instance only once), use the `getDetectedAuthenticators()` method.
+In order to get all currently detected communication units (each instance only once), use the `getCurrentlyDetectedCommunicationUnits()` method.
 
-If you only care about the closest authenticator, use the `getClosestAuthenticator()` method.
+If you only care about the closest communication unit, use the `getClosestCommunicationUnit()` method.
 
 Keep in mind that you always need to have an active subscription to the `detect()` method for these methods to work.
 
 ### Distance Estimation
 
-Each detected `SeamlessAuthenticator` instance has an `AuthenticatorDistanceProvider` that you can get by using `seamlessAuthenticator.getDistanceProvider()`. It can be used to get the current distance between the `SeamlessAuthenticator` and the `SeamlessAuthenticatorDetector` (`distanceProvider.getDistance()`) as well as to subscribe to distance updates (`distanceProvider.getDistances()`).
+Each detected `CommunicationUnit` instance has an `CommunicationUnitDistanceProvider` that you can get by using `communicationUnit.getDistanceProvider()`. It can be used to get the current distance between the `CommunicationUnit` and the `CommunicationUnitDetector` (`distanceProvider.getDistance()`) as well as to subscribe to distance updates (`distanceProvider.getDistances()`).
 
-You can overwrite the default provider with a custom implementation (e.g. if you have an indoor positioning system) using `seamlessAuthenticator.setDistanceProvider(distanceProvider)`.
+You can overwrite the default provider with a custom implementation (e.g. if you have an indoor positioning system) using `communicationUnit.setDistanceProvider(distanceProvider)`.
 
 ### Initiate an Authentication
 
-To initiate an authentication, you need to provide an `AuthenticationProperties` object. This object contains details about the current user and device.
+To initiate an authentication, you need to provide an `AuthenticationProperties` object. This object contains details about the current user and device, as well as optional additional data.
 
 #### Anticipation
 
-Before actually initiating the authentication, you should use `seamlessAuthenticator.anticipateAuthentication(authenticationProperties)`. This will prepare the authentication as far as possible by already exchanging the data required for the authentication with the authenticator. Although this is not required, it will reduce the time needed for authenticating and thus improve the user experience.
+Before actually initiating the authentication, you should use `communicationUnit.anticipateAuthentication(authenticationProperties)`. This will prepare the authentication as far as possible by already exchanging the data required for the authentication with the authenticator. Although this is not required, it will reduce the time needed for authenticating and thus improve the user experience.
 
 #### Authentication
 
-In order to authenticate, use `seamlessAuthenticator.authenticate(authenticationProperties)`. The returned `Completable` will complete when the authentication succeeded, or emit an error otherwise.
+In order to authenticate, use `communicationUnit.authenticate(authenticationProperties)`. The returned `Completable` will complete when the authentication succeeded, or emit an error otherwise.
 
 
 

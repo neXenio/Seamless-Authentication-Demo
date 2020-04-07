@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
@@ -17,70 +17,70 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Single;
 
-public class AuthenticatorViewHolder extends RecyclerView.ViewHolder {
+public class CommunicationUnitViewHolder extends RecyclerView.ViewHolder {
 
     private final TextView titleTextView;
     private final TextView subtitleTextView;
     private final TextView contentTextView;
 
-    AuthenticatorViewHolder(View view) {
+    CommunicationUnitViewHolder(View view) {
         super(view);
         titleTextView = view.findViewById(R.id.titleTextView);
         subtitleTextView = view.findViewById(R.id.subtitleTextView);
         contentTextView = view.findViewById(R.id.contentTextView);
     }
 
-    void renderAuthenticator(@NonNull SeamlessAuthenticator authenticator) {
+    void renderCommunicationUnit(@NonNull CommunicationUnit communicationUnit) {
         Context context = itemView.getContext();
 
-        String title = getReadableName(authenticator, context).blockingGet();
-        String subtitle = getReadableId(authenticator, context).blockingGet();
-        String content = getReadableDescription(authenticator, context).blockingGet();
+        String title = getReadableName(communicationUnit, context).blockingGet();
+        String subtitle = getReadableId(communicationUnit, context).blockingGet();
+        String content = getReadableDescription(communicationUnit, context).blockingGet();
 
         titleTextView.setText(title);
         subtitleTextView.setText(subtitle);
         contentTextView.setText(content);
     }
 
-    public static Single<String> getReadableDescription(@NonNull SeamlessAuthenticator authenticator, @NonNull Context context) {
+    public static Single<String> getReadableDescription(@NonNull CommunicationUnit communicationUnit, @NonNull Context context) {
         return Single.fromCallable(() -> {
-            double distance = authenticator.getDistance().blockingGet();
-            String state = getReadableState(authenticator, context).blockingGet();
+            double distance = communicationUnit.getDistance().blockingGet();
+            String state = getReadableState(communicationUnit, context).blockingGet();
 
-            if (authenticator instanceof Gate) {
-                Gate gate = (Gate) authenticator;
+            if (communicationUnit instanceof Gate) {
+                Gate gate = (Gate) communicationUnit;
 
                 Gateway closestGateway = gate.getClosestGateway().blockingGet();
                 String direction = getReadableDirection(closestGateway, context).blockingGet();
 
                 long gatewaysCount = gate.getGateways().count().blockingGet();
                 if (gatewaysCount > 1) {
-                    return context.getString(R.string.authenticator_gate_description,
+                    return context.getString(R.string.communication_unit_gate_description,
                             distance, state, gatewaysCount, direction, closestGateway.getIndex().blockingGet());
                 } else {
-                    return context.getString(R.string.authenticator_door_description,
+                    return context.getString(R.string.communication_unit_door_description,
                             distance, state, direction);
                 }
             } else {
-                return context.getString(R.string.authenticator_generic_description,
+                return context.getString(R.string.communication_unit_generic_description,
                         distance, state);
             }
-        }).onErrorReturnItem(context.getString(R.string.authenticator_name_unknown));
+        }).onErrorReturnItem(context.getString(R.string.communication_unit_name_unknown));
     }
 
-    public static Single<String> getReadableName(@NonNull SeamlessAuthenticator authenticator, @NonNull Context context) {
-        return authenticator.getName()
-                .onErrorReturnItem(context.getString(R.string.authenticator_name_unknown));
+    public static Single<String> getReadableName(@NonNull CommunicationUnit communicationUnit, @NonNull Context context) {
+        return communicationUnit.getName()
+                .onErrorReturnItem(context.getString(R.string.communication_unit_name_unknown));
     }
 
-    public static Single<String> getReadableId(@NonNull SeamlessAuthenticator authenticator, @NonNull Context context) {
-        return authenticator.getId().map(UUID::toString)
-                .onErrorReturnItem(context.getString(R.string.authenticator_id_unknown));
+    public static Single<String> getReadableId(@NonNull CommunicationUnit communicationUnit, @NonNull Context context) {
+        return communicationUnit.getId().map(UUID::toString)
+                .onErrorReturnItem(context.getString(R.string.communication_unit_id_unknown));
     }
 
-    public static Single<String> getReadableState(@NonNull SeamlessAuthenticator authenticator, @NonNull Context context) {
-        return authenticator.isActive().map(active -> {
-            int resourceId = active ? R.string.authenticator_state_active : R.string.authenticator_state_inactive;
+    public static Single<String> getReadableState(@NonNull CommunicationUnit CommunicationUnit, @NonNull Context context) {
+        return CommunicationUnit.isActive().map(active -> {
+            int resourceId = active ? R.string.communication_unit_state_active : R.string.communication_unit_state_inactive;
             return context.getString(resourceId);
         }).onErrorReturnItem(context.getString(R.string.unknown));
     }

@@ -18,8 +18,8 @@ import android.widget.Toast;
 
 import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticator;
-import com.nexenio.seamlessauthentication.SeamlessAuthenticatorDetector;
+import com.nexenio.seamlessauthentication.CommunicationUnit;
+import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
 import com.nexenio.seamlessauthentication.distance.DistanceProvider;
@@ -27,13 +27,14 @@ import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detecti
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
-import com.nexenio.seamlessauthenticationintegrationsample.health.AuthenticatorHealthActivity;
-import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorListActivity;
-import com.nexenio.seamlessauthenticationintegrationsample.overview.AuthenticatorViewHolder;
+import com.nexenio.seamlessauthenticationintegrationsample.health.CommunicationUnitHealthActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity;
+import com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitViewHolder;
 import com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +46,7 @@ import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -52,23 +54,23 @@ import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
- * A fragment representing a single Authenticator detail screen. This fragment is either contained
- * in a {@link AuthenticatorListActivity} in two-pane mode (on tablets) or a {@link
- * AuthenticatorDetailActivity} on handsets.
+ * A fragment representing a single {@link CommunicationUnit} detail screen. This fragment is either
+ * contained in a {@link CommunicationUnitListActivity} in two-pane mode (on tablets) or a {@link
+ * CommunicationUnitDetailActivity} on handsets.
  */
-public class AuthenticatorDetailFragment extends Fragment {
+public class CommunicationUnitDetailFragment extends Fragment {
 
     /**
      * The fragment argument representing the item ID that this fragment represents.
      */
-    public static final String KEY_AUTHENTICATOR_ID = "authenticator_id";
+    public static final String KEY_COMMUNICATION_UNIT_ID = "communication_unit_id";
 
-    private UUID authenticatorId;
+    private UUID communicationUnitId;
 
-    private SeamlessAuthenticatorDetector authenticatorDetector;
-    private Disposable authenticatorUpdateDisposable;
+    private CommunicationUnitDetector communicationUnitDetector;
+    private Disposable communicationUnitUpdateDisposable;
 
-    private SeamlessAuthenticator authenticator;
+    private CommunicationUnit communicationUnit;
     private Disposable authenticationDisposable;
     private Disposable anticipateAuthenticationDisposable;
 
@@ -94,7 +96,7 @@ public class AuthenticatorDetailFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
      * screen orientation changes).
      */
-    public AuthenticatorDetailFragment() {
+    public CommunicationUnitDetailFragment() {
     }
 
     @Override
@@ -102,20 +104,15 @@ public class AuthenticatorDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         SampleApplication application = (SampleApplication) getActivity().getApplication();
-        authenticatorDetector = application.getAuthenticatorDetector();
+        communicationUnitDetector = application.getCommunicationUnitDetector();
 
-        if (getArguments().containsKey(KEY_AUTHENTICATOR_ID)) {
-            String idArgument = getArguments().getString(KEY_AUTHENTICATOR_ID);
-            authenticatorId = UUID.fromString(idArgument);
-            Timber.d("Authenticator ID: %s", authenticatorId);
+        if (getArguments().containsKey(KEY_COMMUNICATION_UNIT_ID)) {
+            String idArgument = getArguments().getString(KEY_COMMUNICATION_UNIT_ID);
+            communicationUnitId = UUID.fromString(idArgument);
+            Timber.d("Communication Unit ID: %s", communicationUnitId);
         }
 
         authenticationProperties = new AuthenticationProperties() {
-
-            @Override
-            public Single<String> getUserName() {
-                return Single.just("Demo User");
-            }
 
             @Override
             public Single<UUID> getUserId() {
@@ -126,12 +123,18 @@ public class AuthenticatorDetailFragment extends Fragment {
             public Single<UUID> getDeviceId() {
                 return Single.just(application.getDeviceId());
             }
+
+            @Override
+            public Maybe<byte[]> getAdditionalData() {
+                return Maybe.fromCallable(() -> "Open Sesame!".getBytes(StandardCharsets.UTF_8));
+            }
+
         };
     }
 
     @Override
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.authenticator_detail, container, false);
+        View rootView = inflater.inflate(R.layout.communication_unit_detail, container, false);
 
         appBarLayout = getActivity().findViewById(R.id.toolbar_layout);
         idTextView = rootView.findViewById(R.id.idTextView);
@@ -144,8 +147,8 @@ public class AuthenticatorDetailFragment extends Fragment {
         authenticateButton = rootView.findViewById(R.id.authenticateButton);
         monitorHealthButton = rootView.findViewById(R.id.monitorHealthButton);
 
-        authenticateButton.setOnClickListener(v -> authenticate(authenticator));
-        monitorHealthButton.setOnClickListener(v -> monitorHealth(authenticator));
+        authenticateButton.setOnClickListener(v -> authenticate(communicationUnit));
+        monitorHealthButton.setOnClickListener(v -> monitorHealth(communicationUnit));
 
         seamlessAuthenticationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             seamlessAuthenticationEnabled = isChecked;
@@ -193,28 +196,28 @@ public class AuthenticatorDetailFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        startUpdatingAuthenticator();
+        startUpdatingCommunicationUnit();
     }
 
     @Override
     public void onDetach() {
-        stopUpdatingAuthenticator();
+        stopUpdatingCommunicationUnit();
         super.onDetach();
     }
 
-    private void monitorHealth(@NonNull SeamlessAuthenticator authenticator) {
-        Timber.d("monitorHealth() called with: authenticator = [%s]", authenticator);
-        Intent intent = new Intent(getContext(), AuthenticatorHealthActivity.class);
-        intent.putExtra(AuthenticatorDetailFragment.KEY_AUTHENTICATOR_ID, authenticator.getId().blockingGet().toString());
+    private void monitorHealth(@NonNull CommunicationUnit communicationUnit) {
+        Timber.d("monitorHealth() called with: communicationUnit = [%s]", communicationUnit);
+        Intent intent = new Intent(getContext(), CommunicationUnitHealthActivity.class);
+        intent.putExtra(CommunicationUnitDetailFragment.KEY_COMMUNICATION_UNIT_ID, communicationUnit.getId().blockingGet().toString());
         getContext().startActivity(intent);
     }
 
-    private void anticipateAuthentication(@NonNull SeamlessAuthenticator authenticator) {
-        Timber.d("anticipateAuthentication() called");
+    private void anticipateAuthentication(@NonNull CommunicationUnit communicationUnit) {
+        Timber.d("anticipateAuthentication() called with: communicationUnit = [%s]", communicationUnit);
         if (anticipateAuthenticationDisposable != null && !anticipateAuthenticationDisposable.isDisposed()) {
             return;
         }
-        anticipateAuthenticationDisposable = authenticator.anticipateAuthentication(authenticationProperties)
+        anticipateAuthenticationDisposable = communicationUnit.anticipateAuthentication(authenticationProperties)
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                         () -> Timber.i("Authentication anticipation succeeded"),
@@ -222,12 +225,12 @@ public class AuthenticatorDetailFragment extends Fragment {
                 );
     }
 
-    private void authenticate(@NonNull SeamlessAuthenticator authenticator) {
-        Timber.d("authenticate() called");
+    private void authenticate(@NonNull CommunicationUnit communicationUnit) {
+        Timber.d("authenticate() called with: communicationUnit = [%s]", communicationUnit);
         if (authenticationDisposable != null && !authenticationDisposable.isDisposed()) {
             return;
         }
-        authenticationDisposable = authenticator.authenticate(authenticationProperties)
+        authenticationDisposable = communicationUnit.authenticate(authenticationProperties)
                 .doOnSubscribe(disposable -> vibrate(200))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -245,48 +248,48 @@ public class AuthenticatorDetailFragment extends Fragment {
                 );
     }
 
-    private void startUpdatingAuthenticator() {
-        Timber.d("startUpdatingAuthenticator() called");
-        authenticatorUpdateDisposable = Flowable.interval(1, TimeUnit.SECONDS)
-                .flatMapMaybe(count -> authenticatorDetector.getDetectedAuthenticators()
-                        .filter(authenticator -> authenticator.getId()
-                                .map(uuid -> uuid.equals(authenticatorId))
+    private void startUpdatingCommunicationUnit() {
+        Timber.d("startUpdatingCommunicationUnit() called");
+        communicationUnitUpdateDisposable = Flowable.interval(1, TimeUnit.SECONDS)
+                .flatMapMaybe(count -> communicationUnitDetector.getCurrentlyDetectedCommunicationUnits()
+                        .filter(communicationUnit -> communicationUnit.getId()
+                                .map(uuid -> uuid.equals(communicationUnitId))
                                 .onErrorReturnItem(false)
                                 .blockingGet())
                         .firstElement())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        this::showAuthenticator,
-                        throwable -> Timber.w(throwable, "Unable to update authenticator")
+                        this::showCommunicationUnit,
+                        throwable -> Timber.w(throwable, "Unable to update communication unit")
                 );
     }
 
-    private void stopUpdatingAuthenticator() {
-        Timber.d("stopUpdatingAuthenticator() called");
-        if (authenticatorUpdateDisposable != null && !authenticatorUpdateDisposable.isDisposed()) {
-            authenticatorUpdateDisposable.dispose();
+    private void stopUpdatingCommunicationUnit() {
+        Timber.d("stopUpdatingCommunicationUnit() called");
+        if (communicationUnitUpdateDisposable != null && !communicationUnitUpdateDisposable.isDisposed()) {
+            communicationUnitUpdateDisposable.dispose();
         }
     }
 
-    private void showAuthenticator(@NonNull SeamlessAuthenticator authenticator) {
-        if (this.authenticator != authenticator) {
-            Timber.d("Authenticator updated: %s", authenticator);
-            this.authenticator = authenticator;
-            anticipateAuthentication(authenticator);
+    private void showCommunicationUnit(@NonNull CommunicationUnit communicationUnit) {
+        if (this.communicationUnit != communicationUnit) {
+            Timber.d("Communication Unit updated: %s", communicationUnit);
+            this.communicationUnit = communicationUnit;
+            anticipateAuthentication(communicationUnit);
         }
 
-        double distance = authenticator.getDistanceProvider()
+        double distance = communicationUnit.getDistanceProvider()
                 .flatMap(DistanceProvider::getDistance)
                 .blockingGet();
 
         if (seamlessAuthenticationEnabled && distance <= rangeThreshold) {
-            authenticate(authenticator);
+            authenticate(communicationUnit);
         }
 
-        String name = AuthenticatorViewHolder.getReadableName(authenticator, getContext()).blockingGet();
-        String id = AuthenticatorViewHolder.getReadableId(authenticator, getContext()).blockingGet();
-        String description = AuthenticatorViewHolder.getReadableDescription(authenticator, getContext()).blockingGet();
+        String name = CommunicationUnitViewHolder.getReadableName(communicationUnit, getContext()).blockingGet();
+        String id = CommunicationUnitViewHolder.getReadableId(communicationUnit, getContext()).blockingGet();
+        String description = CommunicationUnitViewHolder.getReadableDescription(communicationUnit, getContext()).blockingGet();
 
         if (appBarLayout != null) {
             appBarLayout.setTitle(name);
@@ -296,8 +299,8 @@ public class AuthenticatorDetailFragment extends Fragment {
         idTextView.setText(id);
         descriptionTextView.setText(description);
 
-        if (authenticator instanceof Gate) {
-            Gate gate = (Gate) authenticator;
+        if (communicationUnit instanceof Gate) {
+            Gate gate = (Gate) communicationUnit;
             List<Beacon> beacons = new ArrayList<>();
 
             beacons.addAll(gate.getDetectionBeacons()
@@ -313,7 +316,7 @@ public class AuthenticatorDetailFragment extends Fragment {
             }
             beaconDescriptionTextView.setText(beaconDescription.toString());
 
-            gateView.onAuthenticatorUpdated(gate);
+            gateView.onCommunicationUnitUpdated(gate);
         }
     }
 
