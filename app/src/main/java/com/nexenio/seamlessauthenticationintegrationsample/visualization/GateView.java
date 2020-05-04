@@ -493,7 +493,7 @@ public class GateView extends View implements GateVisualization {
 
         textPaint.setColor(beaconStrokePaint.getColor());
         canvas.drawText(
-                String.valueOf(beacon.getMinor()),
+                String.valueOf(beacon.getMinor().blockingGet()),
                 gatewayDetectionBeaconRect.right / 2,
                 ((gatewayDetectionBeaconRect.bottom / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
                 textPaint

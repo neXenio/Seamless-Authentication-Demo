@@ -7,7 +7,6 @@ import com.nexenio.seamlessauthentication.SeamlessAuthentication;
 
 import java.util.UUID;
 
-import androidx.annotation.NonNull;
 import timber.log.Timber;
 
 public class SampleApplication extends Application {
@@ -15,7 +14,7 @@ public class SampleApplication extends Application {
     private UUID userId = UUID.randomUUID();
     private UUID deviceId = UUID.randomUUID();
 
-    @NonNull
+    private SeamlessAuthentication seamlessAuthentication;
     private CommunicationUnitDetector communicationUnitDetector;
 
     @Override
@@ -23,10 +22,12 @@ public class SampleApplication extends Application {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
 
-        communicationUnitDetector = SeamlessAuthentication.createDetector(this);
+        seamlessAuthentication = SeamlessAuthentication.getInstance();
+
+        seamlessAuthentication.initialize(this).blockingAwait();
+        communicationUnitDetector = seamlessAuthentication.getCommunicationUnitDetector();
     }
 
-    @NonNull
     public CommunicationUnitDetector getCommunicationUnitDetector() {
         return communicationUnitDetector;
     }
