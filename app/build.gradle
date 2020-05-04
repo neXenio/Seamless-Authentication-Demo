@@ -26,7 +26,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.nexenio.seamlessauthentication:core:0.12.0'
+    //implementation 'com.nexenio.seamlessauthentication:core:0.12.0'
+    implementation 'com.nexenio.seamlessauthentication:core:feature-BA-1583-test-android-positioning-based-on-recorded-ble-frames-SNAPSHOT'
 
     implementation 'com.github.neXenio:RxAndroidBleServer:0.1.0'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
@@ -35,9 +36,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
-    implementation 'com.google.android.material:material:1.2.0-alpha03'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha03'
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.3.0-alpha03'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha03'
+    androidTestImplementation 'androidx.test:runner:1.3.0-beta01'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-beta01'
 }

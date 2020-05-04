@@ -1,7 +1,7 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
-import com.nexenio.sblec.payload.PayloadWrapper;
-import com.nexenio.sblec.receiver.ReceiverPayload;
+import me.seamless.sblec.payload.PayloadWrapper;
+import me.seamless.sblec.receiver.ReceiverPayload;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
 import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 

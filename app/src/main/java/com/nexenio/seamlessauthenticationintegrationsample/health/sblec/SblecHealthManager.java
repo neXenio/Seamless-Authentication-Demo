@@ -2,13 +2,13 @@ package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import android.content.Context;
 
-import com.nexenio.sblec.PerformanceModes;
-import com.nexenio.sblec.Sblec;
-import com.nexenio.sblec.payload.PayloadIdFilter;
-import com.nexenio.sblec.receiver.CompletelyReceivedFilter;
-import com.nexenio.sblec.receiver.PayloadReceiver;
-import com.nexenio.sblec.sender.PayloadSender;
-import com.nexenio.sblec.sender.SenderPayload;
+import me.seamless.sblec.PerformanceModes;
+import me.seamless.sblec.Sblec;
+import me.seamless.sblec.payload.PayloadIdFilter;
+import me.seamless.sblec.receiver.CompletelyReceivedFilter;
+import me.seamless.sblec.receiver.PayloadReceiver;
+import me.seamless.sblec.sender.PayloadSender;
+import me.seamless.sblec.sender.SenderPayload;
 import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
 import java.util.UUID;

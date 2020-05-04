@@ -14,7 +14,6 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.nexenio.bleindoorpositioning.ble.advertising.AdvertisingPacket;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.Gateway;
@@ -22,7 +21,7 @@ import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayMode;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.opening.GatewayOpening;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
-import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
+import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.DirectionLockBeacon;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 
 import java.util.HashMap;
@@ -33,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import me.seamless.sblec.positioning.beacon.AdvertisingPacket;
+import me.seamless.sblec.positioning.internal.beacon.BaseAdvertisingPacket;
 import timber.log.Timber;
 
 public class GateView extends View implements GateVisualization {
@@ -305,7 +306,7 @@ public class GateView extends View implements GateVisualization {
 
         // gateway description
         textPaint.setColor(gatewaySeparatorStrokePaint.getColor());
-        String gatewayDescription = gatewayText + " " + gateway.getIndex().blockingGet();
+        String gatewayDescription = gatewayText + " " + gateway.getGatewayIndex().blockingGet();
         canvas.drawText(
                 gatewayDescription,
                 gatewaySeparatorWidth / 2,
@@ -446,12 +447,16 @@ public class GateView extends View implements GateVisualization {
         List<GatewayDetectionBeacon> beacons = gatewayOpening.getDetectionBeacons().toList().blockingGet();
         for (GatewayDetectionBeacon beacon : beacons) {
             int saveCount2 = canvas.save();
-            boolean shouldTranslateToBottom = (isEntry && !beacon.isLeft()) || (!isEntry && beacon.isLeft());
+            boolean isLeftBeacon = beacon.getPosition()
+                    .map(position -> position == GatewayDetectionBeacon.LEFT)
+                    .blockingGet();
+
+            boolean shouldTranslateToBottom = (isEntry && !isLeftBeacon) || (!isEntry && isLeftBeacon);
             if (shouldTranslateToBottom) {
                 canvas.translate(0, gatewayHeight - gatewaySeparatorHeight - (gatewaySeparatorHeight - gatewayDetectionBeaconHeight));
             }
 
-            index = beacon.isLeft() ? leftIndex : rightIndex;
+            index = isLeftBeacon ? leftIndex : rightIndex;
             if (index != 0) {
                 canvas.translate(index * offset, 0);
             }
@@ -459,9 +464,9 @@ public class GateView extends View implements GateVisualization {
             drawGatewayDetectionBeacon(canvas, beacon);
             canvas.restoreToCount(saveCount2);
 
-            if (beacon.isLeft()) {
+            if (isLeftBeacon) {
                 leftIndex++;
-            } else if (beacon.isRight()) {
+            } else {
                 rightIndex++;
             }
         }
@@ -474,7 +479,12 @@ public class GateView extends View implements GateVisualization {
 
         long maximumTimestamp = System.currentTimeMillis() - 250;
         long minimumTimestamp = maximumTimestamp - TimeUnit.SECONDS.toMillis(2);
-        float recencyScore = getRecencyScore(beacon.getLatestTimestamp(), minimumTimestamp, maximumTimestamp);
+        long latestTimestamp = beacon.getLastAdvertisingPacket()
+                .flatMapSingle(BaseAdvertisingPacket::getTimestamp)
+                .onErrorReturnItem(0L)
+                .blockingGet();
+
+        float recencyScore = getRecencyScore(latestTimestamp, minimumTimestamp, maximumTimestamp);
 
         beaconFillPaint.setColor(bluetoothColor);
         beaconFillPaint.setAlpha(Math.round(255 * recencyScore));
@@ -490,7 +500,11 @@ public class GateView extends View implements GateVisualization {
         );
 
         // draw advertising packets
-        List<AdvertisingPacket> advertisingPackets = beacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
+        List<AdvertisingPacket> advertisingPackets = beacon.getRecentAdvertisingPackets()
+                .cast(AdvertisingPacket.class)
+                .toList()
+                .blockingGet();
+
         for (AdvertisingPacket advertisingPacket : advertisingPackets) {
             drawBeaconAdvertisingPacket(canvas, advertisingPacket);
         }
@@ -502,17 +516,21 @@ public class GateView extends View implements GateVisualization {
         int saveCount = canvas.save();
 
         // entry
-        List<GatewayDirectionLockBeacon> entryLockBeacons = gate.getDirectionLockBeacons()
-                .filter(GatewayDirectionLockBeacon::isForEntry)
+        List<DirectionLockBeacon> entryLockBeacons = gate.getDirectionLockBeacons()
+                .filter(directionLockBeacon -> directionLockBeacon.isForEntry().blockingGet())
                 .toList()
                 .blockingGet();
 
         canvas.translate(0, (gateHeight - (entryLockBeacons.size() * (directionLockBeaconHeight))) / 2);
-        for (GatewayDirectionLockBeacon directionLockBeacon : entryLockBeacons) {
+        for (DirectionLockBeacon directionLockBeacon : entryLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
 
             // draw advertising packets
-            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
+            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getRecentAdvertisingPackets()
+                    .cast(AdvertisingPacket.class)
+                    .toList()
+                    .blockingGet();
+
             for (AdvertisingPacket advertisingPacket : advertisingPackets) {
                 drawBeaconAdvertisingPacket(canvas, advertisingPacket);
             }
@@ -526,17 +544,21 @@ public class GateView extends View implements GateVisualization {
         canvas.translate(gateWidth - directionLockBeaconWidth, 0);
 
         // exit
-        List<GatewayDirectionLockBeacon> exitLockBeacons = gate.getDirectionLockBeacons()
-                .filter(GatewayDirectionLockBeacon::isForExit)
+        List<DirectionLockBeacon> exitLockBeacons = gate.getDirectionLockBeacons()
+                .filter(directionLockBeacon -> directionLockBeacon.isForExit().blockingGet())
                 .toList()
                 .blockingGet();
 
         canvas.translate(0, (gateHeight - (exitLockBeacons.size() * (directionLockBeaconHeight))) / 2);
-        for (GatewayDirectionLockBeacon directionLockBeacon : exitLockBeacons) {
+        for (DirectionLockBeacon directionLockBeacon : exitLockBeacons) {
             drawGatewayDirectionLockBeacon(canvas, directionLockBeacon);
 
             // draw advertising packets
-            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getAdvertisingPacketsFromLast(3, TimeUnit.SECONDS);
+            List<AdvertisingPacket> advertisingPackets = directionLockBeacon.getRecentAdvertisingPackets()
+                    .cast(AdvertisingPacket.class)
+                    .toList()
+                    .blockingGet();
+
             for (AdvertisingPacket advertisingPacket : advertisingPackets) {
                 drawBeaconAdvertisingPacket(canvas, advertisingPacket);
             }
@@ -547,12 +569,17 @@ public class GateView extends View implements GateVisualization {
         canvas.restoreToCount(saveCount);
     }
 
-    private void drawGatewayDirectionLockBeacon(Canvas canvas, GatewayDirectionLockBeacon beacon) {
+    private void drawGatewayDirectionLockBeacon(Canvas canvas, DirectionLockBeacon beacon) {
         int saveCount = canvas.save();
 
         long maximumTimestamp = System.currentTimeMillis() - 250;
         long minimumTimestamp = maximumTimestamp - TimeUnit.SECONDS.toMillis(2);
-        float recencyScore = getRecencyScore(beacon.getLatestTimestamp(), minimumTimestamp, maximumTimestamp);
+        long latestTimestamp = beacon.getLastAdvertisingPacket()
+                .flatMapSingle(BaseAdvertisingPacket::getTimestamp)
+                .onErrorReturnItem(0L)
+                .blockingGet();
+
+        float recencyScore = getRecencyScore(latestTimestamp, minimumTimestamp, maximumTimestamp);
 
         beaconFillPaint.setColor(bluetoothColor);
         beaconFillPaint.setAlpha(Math.round(255 * recencyScore));
@@ -561,7 +588,7 @@ public class GateView extends View implements GateVisualization {
 
         textPaint.setColor(beaconStrokePaint.getColor());
         canvas.drawText(
-                String.valueOf(beacon.getMinor()),
+                String.valueOf(beacon.getMinor().blockingGet()),
                 directionLockBeaconWidth / 2,
                 ((directionLockBeaconHeight / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)),
                 textPaint
@@ -573,7 +600,7 @@ public class GateView extends View implements GateVisualization {
     private void drawBeaconAdvertisingPacket(Canvas canvas, AdvertisingPacket advertisingPacket) {
         long maximumTimestamp = System.currentTimeMillis();
         long minimumTimestamp = maximumTimestamp - TimeUnit.SECONDS.toMillis(2);
-        float recencyScore = getRecencyScore(advertisingPacket.getTimestamp(), minimumTimestamp, maximumTimestamp);
+        float recencyScore = getRecencyScore(advertisingPacket.getTimestamp().blockingGet(), minimumTimestamp, maximumTimestamp);
 
         advertisingPacketPaint.setAlpha(Math.round(128 * recencyScore));
 
@@ -610,7 +637,7 @@ public class GateView extends View implements GateVisualization {
     }
 
     @Override
-    public void onDirectionLockBeaconUpdated(@NonNull GatewayDirectionLockBeacon gatewayDetectionBeacon) {
+    public void onDirectionLockBeaconUpdated(@NonNull DirectionLockBeacon gatewayDetectionBeacon) {
         invalidate();
     }
 

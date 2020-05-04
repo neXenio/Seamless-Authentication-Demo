@@ -56,7 +56,7 @@ public class CommunicationUnitViewHolder extends RecyclerView.ViewHolder {
                 long gatewaysCount = gate.getGateways().count().blockingGet();
                 if (gatewaysCount > 1) {
                     return context.getString(R.string.communication_unit_gate_description,
-                            distance, state, gatewaysCount, direction, closestGateway.getIndex().blockingGet());
+                            distance, state, gatewaysCount, direction, closestGateway.getGatewayIndex().blockingGet());
                 } else {
                     return context.getString(R.string.communication_unit_door_description,
                             distance, state, direction);

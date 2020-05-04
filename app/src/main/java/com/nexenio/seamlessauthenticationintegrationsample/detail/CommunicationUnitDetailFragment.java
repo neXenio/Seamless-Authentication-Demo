@@ -16,7 +16,6 @@ import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nexenio.bleindoorpositioning.ble.beacon.Beacon;
 import com.nexenio.seamlessauthentication.AuthenticationProperties;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
@@ -24,7 +23,9 @@ import com.nexenio.seamlessauthentication.accesscontrol.gate.Gate;
 import com.nexenio.seamlessauthentication.accesscontrol.gateway.GatewayDirection;
 import com.nexenio.seamlessauthentication.distance.DistanceProvider;
 import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.detection.GatewayDetectionBeacon;
-import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.GatewayDirectionLockBeacon;
+import com.nexenio.seamlessauthentication.internal.accesscontrol.beacons.lock.DirectionLockBeacon;
+import com.nexenio.seamlessauthentication.internal.beacon.CommunicationUnitAdvertisingPacket;
+import com.nexenio.seamlessauthentication.internal.beacon.CommunicationUnitBeacon;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
 import com.nexenio.seamlessauthenticationintegrationsample.SampleApplication;
 import com.nexenio.seamlessauthenticationintegrationsample.health.CommunicationUnitHealthActivity;
@@ -51,6 +52,9 @@ import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.sblec.positioning.beacon.AdvertisingPacket;
+import me.seamless.sblec.positioning.beacon.Beacon;
+import me.seamless.sblec.positioning.internal.beacon.BaseAdvertisingPacket;
 import timber.log.Timber;
 
 /**
@@ -301,7 +305,7 @@ public class CommunicationUnitDetailFragment extends Fragment {
 
         if (communicationUnit instanceof Gate) {
             Gate gate = (Gate) communicationUnit;
-            List<Beacon> beacons = new ArrayList<>();
+            List<CommunicationUnitBeacon<? extends CommunicationUnitAdvertisingPacket>> beacons = new ArrayList<>();
 
             beacons.addAll(gate.getDetectionBeacons()
                     .toList().blockingGet());
@@ -310,7 +314,7 @@ public class CommunicationUnitDetailFragment extends Fragment {
                     .toList().blockingGet());
 
             StringBuilder beaconDescription = new StringBuilder();
-            for (Beacon beacon : beacons) {
+            for (CommunicationUnitBeacon<? extends CommunicationUnitAdvertisingPacket> beacon : beacons) {
                 beaconDescription.append(getReadableDescription(beacon, getContext()))
                         .append("\n\n");
             }
@@ -329,15 +333,23 @@ public class CommunicationUnitDetailFragment extends Fragment {
         }
     }
 
-    public static String getReadableDescription(@NonNull Beacon beacon, @NonNull Context context) {
+    public static String getReadableDescription(@NonNull CommunicationUnitBeacon<? extends CommunicationUnitAdvertisingPacket> beacon, @NonNull Context context) {
         StringBuilder description = new StringBuilder();
 
+        // TODO: 04.05.20 refactor
+
         String type = getReadableBeaconType(beacon, context);
-        String mac = beacon.getMacAddress();
-        String tx = String.valueOf(beacon.getTransmissionPower());
-        String rssi = String.valueOf(Math.round(beacon.getFilteredRssi()));
-        String calibratedRssi = String.valueOf(beacon.getCalibratedRssi());
-        String distance = String.format(Locale.US, "%.2f", beacon.getDistance());
+        String mac = beacon.getMacAddress().blockingGet();
+        //String tx = String.valueOf(beacon.getTran());
+        String tx = "?";
+        String rssi = beacon.getLastAdvertisingPacket()
+                .flatMapSingle(BaseAdvertisingPacket::getRssi)
+                .map(String::valueOf)
+                .onErrorReturnItem("?")
+                .blockingGet();
+        String calibratedRssi = String.valueOf(beacon.getCalibratedRssi().blockingGet());
+        //String distance = String.format(Locale.US, "%.2f", beacon.getDistance());
+        String distance = "?";
         String interval = getReadableBeaconAdvertisingInterval(beacon, context);
 
         description.append(context.getString(R.string.generic_beacon_description,
@@ -345,17 +357,17 @@ public class CommunicationUnitDetailFragment extends Fragment {
 
         if (beacon instanceof GatewayDetectionBeacon) {
             GatewayDetectionBeacon gatewayDetectionBeacon = (GatewayDetectionBeacon) beacon;
-            String gate = String.valueOf(gatewayDetectionBeacon.getGateIndex());
-            String gateway = String.valueOf(gatewayDetectionBeacon.getGatewayIndex());
-            String direction = getReadableBeaconDirection(gatewayDetectionBeacon.getGatewayDirection(), context);
+            String gate = String.valueOf(gatewayDetectionBeacon.getCommunicationUnitIndex().blockingGet());
+            String gateway = String.valueOf(gatewayDetectionBeacon.getGatewayIndex().blockingGet());
+            String direction = getReadableBeaconDirection(gatewayDetectionBeacon.getOpeningDirection().blockingGet(), context);
             String position = getReadableBeaconPosition(gatewayDetectionBeacon, context);
 
             description.append("\n").append(context.getString(R.string.gateway_detection_beacon_description,
                     gate, gateway, direction, position));
-        } else if (beacon instanceof GatewayDirectionLockBeacon) {
-            GatewayDirectionLockBeacon directionLockBeacon = (GatewayDirectionLockBeacon) beacon;
-            String gate = String.valueOf(directionLockBeacon.getGateIndex());
-            String direction = getReadableBeaconDirection(directionLockBeacon.getGatewayDirection(), context);
+        } else if (beacon instanceof DirectionLockBeacon) {
+            DirectionLockBeacon directionLockBeacon = (DirectionLockBeacon) beacon;
+            String gate = String.valueOf(directionLockBeacon.getCommunicationUnitIndex().blockingGet());
+            String direction = getReadableBeaconDirection(directionLockBeacon.getOpeningDirection().blockingGet(), context);
 
             description.append("\n").append(context.getString(R.string.gateway_direction_lock_beacon_description,
                     gate, direction));
@@ -364,17 +376,9 @@ public class CommunicationUnitDetailFragment extends Fragment {
         return description.toString();
     }
 
-    public static String getReadableBeaconAdvertisingInterval(@NonNull Beacon beacon, @NonNull Context context) {
+    public static String getReadableBeaconAdvertisingInterval(@NonNull Beacon<? extends AdvertisingPacket> beacon, @NonNull Context context) {
         try {
-            long oldestTimestamp = beacon.getOldestAdvertisingPacket().getTimestamp();
-            long latestTimestamp = beacon.getLatestAdvertisingPacket().getTimestamp();
-            double durationInSeconds = (double) (latestTimestamp - oldestTimestamp) / 1000;
-
-            double hertz = 0;
-            if (durationInSeconds != 0) {
-                int count = beacon.getAdvertisingPackets().size();
-                hertz = count / durationInSeconds;
-            }
+            double hertz = beacon.getAdvertisingFrequency().blockingGet();
             return String.format(Locale.US, "%.2f", hertz);
         } catch (Exception e) {
             return context.getString(R.string.unknown);
@@ -384,7 +388,7 @@ public class CommunicationUnitDetailFragment extends Fragment {
     public static String getReadableBeaconType(@NonNull Beacon beacon, @NonNull Context context) {
         if (beacon instanceof GatewayDetectionBeacon) {
             return context.getString(R.string.beacon_type_gateway_detection);
-        } else if (beacon instanceof GatewayDirectionLockBeacon) {
+        } else if (beacon instanceof DirectionLockBeacon) {
             return context.getString(R.string.beacon_type_direction_lock);
         } else {
             return context.getString(R.string.beacon_type_unknown);
@@ -392,7 +396,7 @@ public class CommunicationUnitDetailFragment extends Fragment {
     }
 
     public static String getReadableBeaconPosition(@NonNull GatewayDetectionBeacon beacon, @NonNull Context context) {
-        switch (beacon.getPosition()) {
+        switch (beacon.getPosition().blockingGet()) {
             case GatewayDetectionBeacon.LEFT: {
                 return context.getString(R.string.beacon_position_left);
             }

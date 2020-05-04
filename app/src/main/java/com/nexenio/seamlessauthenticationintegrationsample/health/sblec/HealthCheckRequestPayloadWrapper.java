@@ -1,6 +1,6 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
-import com.nexenio.sblec.payload.PayloadWrapper;
+import me.seamless.sblec.payload.PayloadWrapper;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
 

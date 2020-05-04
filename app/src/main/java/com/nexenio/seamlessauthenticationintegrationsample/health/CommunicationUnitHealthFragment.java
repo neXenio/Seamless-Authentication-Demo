@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.nexenio.sblec.internal.sender.advertiser.AdvertiserException;
+import me.seamless.sblec.internal.sender.advertiser.AdvertiserException;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
