@@ -11,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import me.seamless.sblec.internal.sender.advertiser.AdvertiserException;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.CommunicationUnitDetector;
 import com.nexenio.seamlessauthenticationintegrationsample.R;
@@ -36,6 +35,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.sblec.internal.sender.advertiser.AdvertiserException;
 import timber.log.Timber;
 
 /**

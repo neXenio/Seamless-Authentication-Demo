@@ -42,7 +42,7 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
         </activity>
-
+        
         <activity
                 android:name=".health.CommunicationUnitHealthActivity"
                 android:exported="true"

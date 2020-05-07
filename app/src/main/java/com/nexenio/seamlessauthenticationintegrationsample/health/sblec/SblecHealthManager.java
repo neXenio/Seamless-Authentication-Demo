@@ -2,13 +2,6 @@ package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
 import android.content.Context;
 
-import me.seamless.sblec.PerformanceModes;
-import me.seamless.sblec.Sblec;
-import me.seamless.sblec.payload.PayloadIdFilter;
-import me.seamless.sblec.receiver.CompletelyReceivedFilter;
-import me.seamless.sblec.receiver.PayloadReceiver;
-import me.seamless.sblec.sender.PayloadSender;
-import me.seamless.sblec.sender.SenderPayload;
 import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
 import java.util.UUID;
@@ -21,6 +14,13 @@ import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.sblec.PerformanceModes;
+import me.seamless.sblec.Sblec;
+import me.seamless.sblec.payload.PayloadIdFilter;
+import me.seamless.sblec.receiver.CompletelyReceivedFilter;
+import me.seamless.sblec.receiver.PayloadReceiver;
+import me.seamless.sblec.sender.PayloadSender;
+import me.seamless.sblec.sender.SenderPayload;
 import timber.log.Timber;
 
 public class SblecHealthManager {

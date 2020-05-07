@@ -1,6 +1,5 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
-import me.seamless.sblec.payload.PayloadWrapper;
 import com.nexenio.seamlessauthentication.CommunicationUnit;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
 
@@ -10,6 +9,7 @@ import java.util.UUID;
 import androidx.annotation.NonNull;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import me.seamless.sblec.payload.PayloadWrapper;
 
 /**
  * See: <a href="https://confluence.nexenio.com/display/BA/Health+Check+Request">Documentation</a>

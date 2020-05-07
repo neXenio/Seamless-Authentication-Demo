@@ -1,7 +1,5 @@
 package com.nexenio.seamlessauthenticationintegrationsample.health.sblec;
 
-import me.seamless.sblec.payload.PayloadWrapper;
-import me.seamless.sblec.receiver.ReceiverPayload;
 import com.nexenio.seamlessauthentication.SeamlessAuthenticationException;
 import com.nexenio.seamlessauthenticationintegrationsample.health.HealthCheckResult;
 
@@ -10,6 +8,8 @@ import java.nio.ByteBuffer;
 import androidx.annotation.NonNull;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import me.seamless.sblec.payload.PayloadWrapper;
+import me.seamless.sblec.receiver.ReceiverPayload;
 
 /**
  * See: <a href="https://confluence.nexenio.com/display/BA/Health+Check+Response">Documentation</a>
