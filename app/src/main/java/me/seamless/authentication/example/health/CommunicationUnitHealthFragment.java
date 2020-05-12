@@ -11,12 +11,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import me.seamless.authentication.example.R;
-import me.seamless.authentication.example.SampleApplication;
-import me.seamless.authentication.example.health.gatt.GattHealthManager;
-import me.seamless.authentication.example.health.sblec.SblecHealthManager;
-import me.seamless.authentication.example.overview.CommunicationUnitListActivity;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -35,6 +29,11 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import me.seamless.authentication.CommunicationUnit;
 import me.seamless.authentication.CommunicationUnitDetector;
+import me.seamless.authentication.example.R;
+import me.seamless.authentication.example.SampleApplication;
+import me.seamless.authentication.example.health.gatt.GattHealthManager;
+import me.seamless.authentication.example.health.sblec.SblecHealthManager;
+import me.seamless.authentication.example.overview.CommunicationUnitListActivity;
 import me.seamless.sblec.internal.sender.advertiser.AdvertiserException;
 import timber.log.Timber;
 

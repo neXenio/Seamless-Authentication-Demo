@@ -12,7 +12,6 @@ import com.nexenio.rxandroidbleserver.service.characteristic.RxBleCharacteristic
 import com.nexenio.rxandroidbleserver.service.characteristic.descriptor.CharacteristicUserDescription;
 import com.nexenio.rxandroidbleserver.service.value.RxBleValue;
 import com.nexenio.rxandroidbleserver.service.value.provider.RxBleClientValueProvider;
-import me.seamless.authentication.example.health.HealthCheckResult;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -23,6 +22,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.authentication.example.health.HealthCheckResult;
 import timber.log.Timber;
 
 public class GattHealthManager {

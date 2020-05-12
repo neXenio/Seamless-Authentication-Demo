@@ -7,6 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 import me.seamless.authentication.CommunicationUnit;
 import me.seamless.authentication.example.R;
 import me.seamless.authentication.example.SeamlessAuthenticationActivity;
@@ -14,13 +20,6 @@ import me.seamless.authentication.example.detail.CommunicationUnitDetailActivity
 import me.seamless.authentication.example.detail.CommunicationUnitDetailFragment;
 import me.seamless.authentication.example.health.CommunicationUnitHealthActivity;
 import me.seamless.authentication.example.health.CommunicationUnitHealthFragment;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class CommunicationUnitAdapter extends RecyclerView.Adapter<CommunicationUnitViewHolder> {
 

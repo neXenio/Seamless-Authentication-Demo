@@ -4,18 +4,17 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.UUID;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.Single;
 import me.seamless.authentication.CommunicationUnit;
 import me.seamless.authentication.accesscontrol.gate.Gate;
 import me.seamless.authentication.accesscontrol.gateway.Gateway;
 import me.seamless.authentication.accesscontrol.gateway.GatewayDirection;
 import me.seamless.authentication.accesscontrol.gateway.opening.GatewayOpening;
 import me.seamless.authentication.example.R;
-
-import java.util.UUID;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import io.reactivex.Single;
 
 public class CommunicationUnitViewHolder extends RecyclerView.ViewHolder {
 

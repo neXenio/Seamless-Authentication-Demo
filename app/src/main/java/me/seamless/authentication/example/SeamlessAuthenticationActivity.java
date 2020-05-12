@@ -17,10 +17,6 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import me.seamless.authentication.CommunicationUnit;
-import me.seamless.authentication.CommunicationUnitDetector;
-
-import me.seamless.authentication.example.R;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.concurrent.TimeUnit;
@@ -36,6 +32,8 @@ import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.authentication.CommunicationUnit;
+import me.seamless.authentication.CommunicationUnitDetector;
 import timber.log.Timber;
 
 /**

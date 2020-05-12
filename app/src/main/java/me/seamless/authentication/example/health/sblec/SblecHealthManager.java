@@ -2,8 +2,6 @@ package me.seamless.authentication.example.health.sblec;
 
 import android.content.Context;
 
-import me.seamless.authentication.example.health.HealthCheckResult;
-
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -14,6 +12,7 @@ import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import me.seamless.authentication.example.health.HealthCheckResult;
 import me.seamless.sblec.PerformanceModes;
 import me.seamless.sblec.Sblec;
 import me.seamless.sblec.payload.PayloadIdFilter;

@@ -1,13 +1,12 @@
 package me.seamless.authentication.example.health.sblec;
 
-import me.seamless.authentication.SeamlessAuthenticationException;
-import me.seamless.authentication.example.health.HealthCheckResult;
-
 import java.nio.ByteBuffer;
 
 import androidx.annotation.NonNull;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import me.seamless.authentication.SeamlessAuthenticationException;
+import me.seamless.authentication.example.health.HealthCheckResult;
 import me.seamless.sblec.payload.PayloadWrapper;
 import me.seamless.sblec.receiver.ReceiverPayload;
 

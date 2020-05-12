@@ -2,11 +2,10 @@ package me.seamless.authentication.example;
 
 import android.app.Application;
 
-import me.seamless.authentication.CommunicationUnitDetector;
-import me.seamless.authentication.SeamlessAuthentication;
-
 import java.util.UUID;
 
+import me.seamless.authentication.CommunicationUnitDetector;
+import me.seamless.authentication.SeamlessAuthentication;
 import timber.log.Timber;
 
 public class SampleApplication extends Application {

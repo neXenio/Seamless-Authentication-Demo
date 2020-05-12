@@ -13,7 +13,7 @@
             android:required="true" />
 
     <application
-            android:name="me.seamless.authentication.example.SampleApplication"
+            android:name=".SampleApplication"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
@@ -23,7 +23,7 @@
             android:usesCleartextTraffic="true"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
-                android:name="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
+                android:name=".overview.CommunicationUnitListActivity"
                 android:label="@string/title_communication_unit_list"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -36,22 +36,22 @@
                 android:name="me.seamless.authentication.example.detail.CommunicationUnitDetailActivity"
                 android:exported="true"
                 android:label="@string/title_communication_unit_detail"
-                android:parentActivityName="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
+                android:parentActivityName=".overview.CommunicationUnitListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.me.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value=".overview.CommunicationUnitListActivity" />
         </activity>
 
         <activity
-                android:name="me.seamless.authentication.example.health.CommunicationUnitHealthActivity"
+                android:name=".health.CommunicationUnitHealthActivity"
                 android:exported="true"
                 android:label="@string/title_communication_unit_health"
-                android:parentActivityName="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
+                android:parentActivityName=".overview.CommunicationUnitListActivity"
                 android:theme="@style/DarkFullscreen">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.me.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value=".overview.CommunicationUnitListActivity" />
         </activity>
 
     </application>
