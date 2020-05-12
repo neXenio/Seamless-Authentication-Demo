@@ -10,7 +10,7 @@
         android:divider="?android:attr/dividerHorizontal"
         android:orientation="horizontal"
         android:showDividers="middle"
-        tools:context=".overview.CommunicationUnitListActivity">
+        tools:context="me.seamless.authentication.example.overview.CommunicationUnitListActivity">
 
     <!--
     This layout is a two-pane layout for the Communication Unit master/detail flow.
@@ -25,7 +25,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             app:layoutManager="LinearLayoutManager"
-            tools:context="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity"
+            tools:context="com.nexenio.seamlessauthenticationintegrationsample.me.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity"
             tools:listitem="@layout/communication_unit_list_content" />
 
     <FrameLayout

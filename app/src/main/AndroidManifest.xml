@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="com.nexenio.seamlessauthenticationintegrationsample">
+        package="me.seamless.authentication.example">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -13,7 +13,7 @@
             android:required="true" />
 
     <application
-            android:name=".SampleApplication"
+            android:name="me.seamless.authentication.example.SampleApplication"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
@@ -23,7 +23,7 @@
             android:usesCleartextTraffic="true"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
-                android:name=".overview.CommunicationUnitListActivity"
+                android:name="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
                 android:label="@string/title_communication_unit_list"
                 android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -33,25 +33,25 @@
         </activity>
 
         <activity
-                android:name=".detail.CommunicationUnitDetailActivity"
+                android:name="me.seamless.authentication.example.detail.CommunicationUnitDetailActivity"
                 android:exported="true"
                 android:label="@string/title_communication_unit_detail"
-                android:parentActivityName=".overview.CommunicationUnitListActivity"
+                android:parentActivityName="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.me.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
         </activity>
-        
+
         <activity
-                android:name=".health.CommunicationUnitHealthActivity"
+                android:name="me.seamless.authentication.example.health.CommunicationUnitHealthActivity"
                 android:exported="true"
                 android:label="@string/title_communication_unit_health"
-                android:parentActivityName=".overview.CommunicationUnitListActivity"
+                android:parentActivityName="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
                 android:theme="@style/DarkFullscreen">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value="com.nexenio.seamlessauthenticationintegrationsample.me.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
         </activity>
 
     </application>

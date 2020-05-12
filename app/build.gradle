@@ -7,11 +7,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
-        applicationId "com.nexenio.seamlessauthenticationintegrationsample"
+        applicationId "me.seamless.authentication.example"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 5
-        versionName "1.4"
+        versionCode 6
+        versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -26,8 +26,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    //implementation 'com.nexenio.seamlessauthentication:core:0.12.0'
-    implementation 'com.nexenio.seamlessauthentication:core:feature-BA-1583-test-android-positioning-based-on-recorded-ble-frames-SNAPSHOT'
+    implementation 'me.seamless.authentication:core:0.15.1'
 
     implementation 'com.github.neXenio:RxAndroidBleServer:0.1.0'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'

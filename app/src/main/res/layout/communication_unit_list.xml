@@ -7,5 +7,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layoutManager="LinearLayoutManager"
-        tools:context=".overview.CommunicationUnitListActivity"
+        tools:context="me.seamless.authentication.example.overview.CommunicationUnitListActivity"
         tools:listitem="@layout/communication_unit_list_content" />
