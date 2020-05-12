@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".detail.CommunicationUnitDetailFragment">
+        tools:context="me.seamless.authentication.example.detail.CommunicationUnitDetailFragment">
 
     <com.google.android.material.card.MaterialCardView
             style="@style/AppTheme.CardView">
@@ -154,7 +154,7 @@
                     style="@style/AppTheme.CardView.SubtitleTextView"
                     android:text="@string/caption_visualization"/>
 
-            <com.nexenio.seamlessauthenticationintegrationsample.visualization.GateView
+            <me.seamless.authentication.example.visualization.GateView
                     android:id="@+id/visualizationView"
                     android:padding="10dp"
                     android:layout_width="match_parent"

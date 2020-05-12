@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        package="com.nexenio.seamlessauthenticationintegrationsample">
+        package="me.seamless.authentication.example">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -33,14 +33,14 @@
         </activity>
 
         <activity
-                android:name=".detail.CommunicationUnitDetailActivity"
+                android:name="me.seamless.authentication.example.detail.CommunicationUnitDetailActivity"
                 android:exported="true"
                 android:label="@string/title_communication_unit_detail"
                 android:parentActivityName=".overview.CommunicationUnitListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value=".overview.CommunicationUnitListActivity" />
         </activity>
 
         <activity
@@ -51,7 +51,7 @@
                 android:theme="@style/DarkFullscreen">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.nexenio.seamlessauthenticationintegrationsample.overview.CommunicationUnitListActivity" />
+                    android:value=".overview.CommunicationUnitListActivity" />
         </activity>
 
     </application>

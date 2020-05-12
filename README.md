@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.nexenio.seamlessauthentication:core:0.2.1'
+    implementation 'me.seamless.authentication:core:0.15.1'
 }
 ```
 
@@ -45,17 +45,28 @@ Please avoid any imports from the `internal` package, as these are subject to ch
 
 All interfaces and the internal implementation heavily relies on [RxJava](https://github.com/ReactiveX/RxJava).
 
-### Create a Communication Unit Detector
+### Get a Communication Unit Detector
 
-You should obtain a detector instance through the `SeamlessAuthentication` Singleton, which is the entrypoint to the library. You will need to pass a `Conext`, which you may obtain from a `Fragment`, `Activity`, `Application` or `Service` of your app. It's your responsibility to **only hold a single instance** of the created detector!
+Start by initializing the `SeamlessAuthentication` Singleton, which is the entrypoint to the library. You will need to pass a `Conext`, which you may obtain from a `Fragment`, `Activity`, `Application` or `Service` of your app.
 
 ```java
-CommunicationUnitDetector communicationUnitDetector = SeamlessAuthentication.createDetector(this);
+SeamlessAuthentication seamlessAuthentication = SeamlessAuthentication.getInstance();
+seamlessAuthentication.initialize(this)
+        .subscribe(
+                () -> Timber.d("Seamless authentication initialized"),
+                throwable -> Timber.e(throwable, "Unable to initialize seamless authentication")
+        );
+```
+
+After a successful initialization, you can optain a `CommunicationUnitDetector` instance:
+
+```java
+CommunicationUnitDetector communicationUnitDetector = seamlessAuthentication.getCommunicationUnitDetector();
 ```
 
 ### Detect an Authenticator
 
-In order to actually detect nearby communicationUnits, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
+In order to actually detect nearby communication units, subscribe to the `detect()` method. It will never complete and you can safely subscribe to it multiple times. The detection will stop when the last subscription gets disposed.
 
 ```java
 communicationUnitDetector.detect()
@@ -74,7 +85,7 @@ Please be aware that the `detect()` method may emit `CommunicationUnit` instance
 
 In order to get all currently detected communication units (each instance only once), use the `getCurrentlyDetectedCommunicationUnits()` method.
 
-If you only care about the closest communication unit, use the `getClosestCommunicationUnit()` method.
+If you only care about the closest communication unit, use the `getClosestCommunicationUnit()` method. You can also subscribe to changes using `getClosestCommunicationUnitChanges()`.
 
 Keep in mind that you always need to have an active subscription to the `detect()` method for these methods to work.
 
@@ -90,13 +101,8 @@ To initiate an authentication, you need to provide an `AuthenticationProperties`
 
 #### Anticipation
 
-Before actually initiating the authentication, you should use `communicationUnit.anticipateAuthentication(authenticationProperties)`. This will prepare the authentication as far as possible by already exchanging the data required for the authentication with the authenticator. Although this is not required, it will reduce the time needed for authenticating and thus improve the user experience.
+Before actually initiating the authentication, you should use `communicationUnit.anticipateAuthentication(authenticationProperties)`. This will prepare the authentication as far as possible by already establishing a communication channel and exchanging the data required for the authentication with the authenticator. Although this is not required, it will reduce the time needed for authenticating and thus improve the user experience.
 
 #### Authentication
 
 In order to authenticate, use `communicationUnit.authenticate(authenticationProperties)`. The returned `Completable` will complete when the authentication succeeded, or emit an error otherwise.
-
-
-
-
-

@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Generated from https://material.io/tools/color/#!/?view.left=0&view.right=1&primary.color=131e29&secondary.color=ff7725 -->
-    <color name="primaryColor">#131e29</color>
-    <color name="primaryLightColor">#3a4551</color>
-    <color name="primaryDarkColor">#000000</color>
-    <color name="secondaryColor">#ff7725</color>
-    <color name="secondaryLightColor">#ffa855</color>
-    <color name="secondaryDarkColor">#c54700</color>
+    <!-- Generated from https://material.io/resources/color/#!/?view.left=0&view.right=1&primary.color=544949&secondary.color=FE6156 -->
+    <color name="primaryColor">#544949</color>
+    <color name="primaryLightColor">#807474</color>
+    <color name="primaryDarkColor">#2b2222</color>
+    <color name="secondaryColor">#fe6156</color>
+    <color name="secondaryLightColor">#ff9483</color>
+    <color name="secondaryDarkColor">#c52b2c</color>
     <color name="primaryTextColor">#ffffff</color>
     <color name="secondaryTextColor">#000000</color>
 
-    <!-- Misc. corporate design colors -->
-    <color name="nexenio_orange">#ff7725</color>
-    <color name="nexenio_dark_blue">#131e29</color>
-    <color name="bdrive_blue">#1f9ad5</color>
-
-    <color name="backgroundColor">#EEEEEE</color>
+    <color name="backgroundColor">@color/seamless_light_1</color>
 
     <color name="monitoring_healthy">#003300</color>
     <color name="monitoring_unhealthy">#7f0000</color>
     <color name="monitoring_unknown">#c49000</color>
+
+    <!-- Misc. corporate design colors -->
+    <color name="seamless_dark_1">#000000</color>
+    <color name="seamless_dark_2">#544949</color>
+    <color name="seamless_dark_3">#7E7878</color>
+
+    <color name="seamless_light_1">#DFDBDB</color>
+    <color name="seamless_light_2">#F1EAEA</color>
+    <color name="seamless_light_3">#F9F7F7</color>
+
+    <color name="seamless_accent_1">#FE6156</color>
+    <color name="seamless_accent_2">#FF8E86</color>
+    <color name="seamless_accent_3">#FFB2AD</color>
 
 </resources>
